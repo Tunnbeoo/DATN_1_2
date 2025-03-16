@@ -1,0 +1,28 @@
+.cart-item {
+    display: flex;
+    align-items: center; /* Căn giữa theo chiều dọc */
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    transition: background 0.3s ease;
+    position: relative;
+  }
+  
+  .cart-item:hover {
+    background: #f9f9f9;
+  }
+  
+  .cart-checkbox {
+    width: 16px; /* Nhỏ gọn hơn */
+    height: 16px;
+    cursor: pointer;
+    position: absolute;
+    left: 10px; /* Giữ cố định vị trí checkbox */
+  }
+  
+  .cart-content {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding-left: 30px; /* Đẩy nội dung sang phải để tránh checkbox */
+  }
+  
