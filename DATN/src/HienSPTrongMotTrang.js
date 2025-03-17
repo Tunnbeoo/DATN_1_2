@@ -45,10 +45,11 @@ function HienSPTrongMotTrang({ spTrongTrang }) {
                             <div className="box_SPL_icon_star_dam"><i className="bi bi-star-fill"></i></div>
                             <div className="box_SPL_icon_star_dam"><i className="bi bi-star-fill"></i></div>
                             <div className="box_SPL_icon_star_nhat"><i className="bi bi-star-fill"></i></div>
-                            <div className="box_SPL_icon_star_dg"><p>(Đánh giá)</p></div>
-                    
-                        </div>
-                    
+                            <div className="box_SPL_icon_star_dg"><p>(Đánh giá) asdasdasd</p></div>
+                        </div> 
+                    </div>
+                    <div className="so_sanh">
+                            <div className="so_sanh_text">So sánh</div>
                     </div>
                 </div>
             
