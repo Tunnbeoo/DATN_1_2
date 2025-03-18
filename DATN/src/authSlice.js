@@ -16,6 +16,7 @@ export const authSlice = createSlice({
         state.daDangNhap = true;
         console.log("Đã ghi nhận state đăng nhập", state.user) 
       },
+      
     }, 
 })
 export const { dalogin, thoat } = authSlice.actions;

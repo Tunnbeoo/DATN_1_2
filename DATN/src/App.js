@@ -21,7 +21,8 @@ import AdminUser from './admin_user';
 import AdminOrder from './admin_order';
 import Login from './login';
 import { useSelector } from 'react-redux';
-
+import HienSPTrongMotTrang from './HienSPTrongMotTrang';
+import SoSanh from './SoSanh';
 import ProtectedRoute from './ProtectedRoute';
 import UppdatePassWord from './doi_pass';
 import Logout from './logout';
@@ -125,6 +126,8 @@ function App() {
         <Route path="/profile/:userId" element={<Profile />} /> {/* Trang Profile có userId */}
         <Route path="/" element={<PageHome />} />
         <Route path="*" element={<NotFound />} />
+        <Route path="/" element={<HienSPTrongMotTrang />} />
+        <Route path="/so-sanh" element={<SoSanh />} />
         <Route element={<ProtectedRoute />}>
           <Route path="/showcart" element={<ShowCart />} />
           <Route path="/thanhtoan/" element={<ThanhToan />} />

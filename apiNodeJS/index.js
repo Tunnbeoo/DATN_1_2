@@ -215,6 +215,58 @@ app.post('/luugiohang/', function(req, res) {
            res.json({"thongbao":'Đã lưu sp vào database', "id_sp": data.id_sp})
      });   
 });
+// so sanh
+// Thêm sản phẩm vào danh sách so sánh
+app.post('/so-sanh', (req, res) => {
+  const { id_user, id_sp } = req.body;
+
+  // Kiểm tra xem đã đủ số sản phẩm để so sánh chưa
+  const checkSql = `SELECT COUNT(*) AS total FROM so_sanh WHERE id_user = ?`;
+  db.query(checkSql, [id_user], (err, result) => {
+      if (err) return res.status(500).json({ error: "Lỗi kiểm tra danh sách" });
+
+      if (result[0].total >= 4) {
+          return res.status(400).json({ message: "Chỉ có thể so sánh tối đa 4 sản phẩm" });
+      }
+
+      // Thêm sản phẩm vào danh sách so sánh
+      const sql = `INSERT INTO so_sanh (id_user, id_sp) VALUES (?, ?)`;
+      db.query(sql, [id_user, id_sp], (err, data) => {
+          if (err) return res.status(500).json({ error: "Lỗi thêm sản phẩm vào so sánh" });
+
+          res.json({ message: "Đã thêm sản phẩm vào so sánh" });
+      });
+  });
+});
+// Lấy danh sách sản phẩm đang so sánh
+app.get('/so-sanh/:id_user', (req, res) => {
+  const id_user = req.params.id_user;
+  
+  const sql = `
+      SELECT sp.id, sp.ten_sp, sp.gia, sp.gia_km, sp.hinh, tt.ram, tt.cpu, tt.dia_cung, tt.can_nang 
+      FROM so_sanh ss
+      JOIN san_pham sp ON ss.id_sp = sp.id
+      LEFT JOIN thuoc_tinh tt ON sp.id = tt.id_sp
+      WHERE ss.id_user = ?
+  `;
+  
+  db.query(sql, [id_user], (err, data) => {
+      if (err) return res.status(500).json({ error: "Lỗi lấy danh sách so sánh" });
+
+      res.json(data);
+  });
+});
+// Xóa sản phẩm khỏi danh sách so sánh
+app.delete('/so-sanh/:id_user/:id_sp', (req, res) => {
+  const { id_user, id_sp } = req.params;
+
+  const sql = `DELETE FROM so_sanh WHERE id_user = ? AND id_sp = ?`;
+  db.query(sql, [id_user, id_sp], (err) => {
+      if (err) return res.status(500).json({ error: "Lỗi khi xóa sản phẩm khỏi so sánh" });
+
+      res.json({ message: "Đã xóa sản phẩm khỏi danh sách so sánh" });
+  });
+});
 
 // admin
 app.get('/admin/sp', function(req, res) {

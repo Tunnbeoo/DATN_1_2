@@ -18,7 +18,9 @@ export const cartSlice = createSlice({
             }
             
         },
-
+        sosanh:() => {
+           
+        },
         suaSL: (state,param) => {// tham số là mảng 2 phần tử id và sl. VD [5000, 3]
             let id = param.payload[0];
             let so_luong = param.payload[1];
