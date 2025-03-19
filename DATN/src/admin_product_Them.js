@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 function AdminProductThem({ setRefresh }) {
-    const [ setIsOpen] = useState(true);
+    const [ setIsOpen] = useState(true);  // Sửa lỗi state
     const [sp, setSp] = useState({
         ten_sp: '',
         hinh: '',
