@@ -7,6 +7,7 @@ function AdminProductSua({ setRefresh, selectedProduct }) {
     });
 
     useEffect(() => {
+        console.log("selectedProduct:", selectedProduct); // Kiểm tra dữ liệu
         if (selectedProduct) {
             setSp(selectedProduct); 
         }

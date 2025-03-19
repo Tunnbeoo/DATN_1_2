@@ -1,6 +1,6 @@
 // admin_category_Sua.js
 import { useState, useEffect } from "react";
-
+// import { useNavigate } from "react-router-dom";
 function AdminCategorySua({ setRefresh, category }) {
     const [loai, setLoai] = useState({
         ten_loai: '',
@@ -13,7 +13,7 @@ function AdminCategorySua({ setRefresh, category }) {
     useEffect(() => {
         if (category) setLoai(category);
     }, [category]);
-
+    // const navigate = useNavigate();
     const xuliInput = (e) => {
         const { id, value } = e.target;
         setLoai(prev => ({ ...prev, [id]: value }));
@@ -40,7 +40,8 @@ function AdminCategorySua({ setRefresh, category }) {
         }, 2000);
     };
     const [thongBao, setThongBao] = useState(false);
-
+    setRefresh(prev => !prev);
+    // navigate('/admin/category');
     return (
         <div>
             {thongBao && (
