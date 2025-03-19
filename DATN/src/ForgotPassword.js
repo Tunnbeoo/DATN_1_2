@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import "./doi_pass.css"; 
+import { useNavigate } from "react-router-dom";
+import "./ForgotPassword.css";
 
-const UpdatePassword = () => {
+const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [token, setToken] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -11,22 +12,24 @@ const UpdatePassword = () => {
   const [isEmailSent, setIsEmailSent] = useState(false);
   const [isTokenValid, setIsTokenValid] = useState(false);
 
+  const navigate = useNavigate();
+
   const handleRequestToken = async () => {
     setLoading(true);
     setError("");
     setSuccess("");
 
     try {
-      const res = await fetch("http://localhost:3000/request-change-password", {
+      const res = await fetch("http://localhost:3000/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Lỗi gửi mã xác thực");
+      if (!res.ok) throw new Error(data.message || "Lỗi gửi mã xác nhận!");
 
-      setSuccess("Mã xác thực đã gửi tới email.");
+      setSuccess("Mã xác nhận đã được gửi đến email.");
       setIsEmailSent(true);
     } catch (error) {
       setError(error.message);
@@ -48,9 +51,9 @@ const UpdatePassword = () => {
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Mã xác thực không hợp lệ");
+      if (!res.ok) throw new Error(data.message || "Mã xác nhận không hợp lệ!");
 
-      setSuccess("Mã xác thực hợp lệ. Nhập mật khẩu mới.");
+      setSuccess("Mã xác nhận hợp lệ. Nhập mật khẩu mới.");
       setIsTokenValid(true);
     } catch (error) {
       setError(error.message);
@@ -72,9 +75,10 @@ const UpdatePassword = () => {
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Không thể đặt lại mật khẩu");
+      if (!res.ok) throw new Error(data.message || "Không thể đặt lại mật khẩu!");
 
-      setSuccess("Mật khẩu đặt lại thành công! Đăng nhập ngay.");
+      setSuccess("Mật khẩu đặt lại thành công! Đang chuyển hướng...");
+      setTimeout(() => navigate("/login"), 2000);
     } catch (error) {
       setError(error.message);
     } finally {
@@ -83,9 +87,9 @@ const UpdatePassword = () => {
   };
 
   return (
-    <div id="update-password-page">
-      <div className="update-password-container">
-        <h2>Đặt lại mật khẩu</h2>
+    <div id="forgot-password-page">
+      <div className="forgot-password-container">
+        <h2>Quên Mật Khẩu</h2>
         {error && <p className="error">{error}</p>}
         {success && <p className="success">{success}</p>}
 
@@ -100,13 +104,13 @@ const UpdatePassword = () => {
             disabled={isEmailSent}
           />
           <button onClick={handleRequestToken} disabled={loading || isEmailSent}>
-            {loading ? "Đang gửi mã..." : "Gửi mã xác thực"}
+            {loading ? "Đang gửi mã..." : "Gửi mã xác nhận"}
           </button>
         </div>
 
         {isEmailSent && (
           <div className="form-group">
-            <label>Mã xác thực (Token)</label>
+            <label>Mã xác nhận (Token)</label>
             <input
               type="text"
               placeholder="Nhập mã xác nhận"
@@ -141,4 +145,4 @@ const UpdatePassword = () => {
   );
 };
 
-export default UpdatePassword;
+export default ForgotPassword;

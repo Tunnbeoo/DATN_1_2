@@ -1,8 +1,15 @@
-const mysql = require('mysql');
-const exp = require("express");
-const app = exp();
-var cors = require('cors');
-app.use( [ cors() , exp.json() ] );
+require("dotenv").config();
+const express = require("express");
+const mysql = require("mysql2");
+const nodemailer = require("nodemailer");
+const crypto = require("crypto");
+const cors = require("cors");
+const app = express();
+const bcrypt = require('bcrypt');
+app.use(express.json());
+app.use(cors());
+
+
 
 const db = mysql.createConnection({
    host:'localhost', 
@@ -457,57 +464,195 @@ const jwt = require('jsonwebtoken');
 const fs = require('fs');
 const PRIVATE_KEY = fs.readFileSync('private-key.txt');
 
+// API đăng nhập
 app.post("/login", function(req, res) {
   const email = req.body.email;
   const password = req.body.password;
 
   checkUserPass(email, password, (err, userInfo) => {
     if (err) {
-      res.status(520).json({ thongbao: "Đã xảy ra lỗi khi xử lý yêu cầu của bạn." });
+      return res.status(520).json({ thongbao: "Đã xảy ra lỗi khi xử lý yêu cầu của bạn." });
     } else if (userInfo) {
-          const jwtBearToken = jwt.sign({}, 
-          PRIVATE_KEY, { algorithm: "RS256", expiresIn: "120s", subject: userInfo.id.toString() }
+      
+      const jwtBearToken = jwt.sign(
+        { userId: userInfo.id, email: userInfo.email },  
+        PRIVATE_KEY,  
+        { algorithm: "RS256", expiresIn: "120s", subject: userInfo.id.toString() }  
       );
-      res.status(200).json({ token: jwtBearToken, expiresIn: 120, userInfo: userInfo });
+      return res.status(200).json({ token: jwtBearToken, expiresIn: 120, userInfo: userInfo });
     } else {
-      res.status(401).json({ thongbao: "Email hoặc mật khẩu không đúng" });
+      return res.status(401).json({ thongbao: "Email hoặc mật khẩu không đúng" });
     }
   });
 });
 
+// Hàm kiểm tra email và mật khẩu
 const checkUserPass = (email, password, callback) => {
-  const query = 'SELECT * FROM users WHERE email = ? AND password = ?';
-  db.query(query, [email, password], (err, results) => {
+  const query = 'SELECT * FROM users WHERE email = ?'; 
+  db.query(query, [email], (err, results) => {
     if (err) {
       callback(err, null);
     } else if (results.length > 0) {
       const user = results[0];
-      callback(null, { id: user.id, name: user.name, dia_chi: user.dia_chi, dien_thoai: user.dien_thoai, hinh: user.hinh, role: user.role });
+      bcrypt.compare(password, user.password, (err, isMatch) => {
+        if (err) {
+          callback(err, null);
+        } else if (isMatch) {
+          callback(null, { 
+            id: user.id, 
+            name: user.name, 
+            dia_chi: user.dia_chi, 
+            dien_thoai: user.dien_thoai, 
+            hinh: user.hinh, 
+            role: user.role 
+          });
+        } else {
+          callback(null, null);  
+        }
+      });
     } else {
-      callback(null, null);
+      callback(null, null);  
     }
   });
 };
 
-app.post('/updatepass', (req, res) => {
-  const { userId, passhientai, newPassword } = req.body;
 
-  // Kiểm tra mật khẩu hiện tại
-  db.query('SELECT password FROM users WHERE id = ?', [userId], (err, results) => {
-    if (err) return res.status(500).json({ thongbao: 'Lỗi database' });
+
+const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false,
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+
+
+app.post("/request-change-password", (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ message: "Vui lòng nhập email" });
+
+  const checkEmailSql = `SELECT id FROM users WHERE email = ?`;
+  db.query(checkEmailSql, [email], async (err, results) => {
+    if (err) return res.status(500).json({ message: "Lỗi server", error: err });
+    if (results.length === 0) return res.status(404).json({ message: "Email không tồn tại trong hệ thống!" });
+
+    const userId = results[0].id;
+    const token = Math.floor(100000 + Math.random() * 900000).toString(); // Mã OTP 6 chữ số
+    const expireTime = new Date(Date.now() + 15 * 60 * 1000); // Hết hạn sau 15 phút
+
+    // Xóa token cũ trước khi tạo mới
+    const sqlUpdate = `UPDATE users SET reset_token = ?, reset_token_expire = ? WHERE id = ?`;
+    db.query(sqlUpdate, [token, expireTime, userId], (err) => {
+      if (err) return res.status(500).json({ message: "Lỗi server", error: err });
+
+      const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: "Xác nhận đổi mật khẩu",
+        html: `<p>Nhập mã sau để xác nhận đổi mật khẩu:</p>
+               <h2>${token}</h2>
+               <p>Mã này có hiệu lực trong 15 phút.</p>`,
+      };
+
+      transporter.sendMail(mailOptions, (error) => {
+        if (error) return res.status(500).json({ message: "Lỗi gửi email", error });
+        res.json({ message: "Mã xác nhận đã được gửi tới email của bạn!" });
+      });
+    });
+  });
+});
+
+app.post("/verify-token", (req, res) => {
+  const { email, token } = req.body;
+  if (!email || !token) return res.status(400).json({ message: "Thiếu thông tin cần thiết" });
+
+  const sql = `SELECT id FROM users WHERE email = ? AND reset_token = ? AND reset_token_expire > NOW()`;
+  db.query(sql, [email, token], (err, results) => {
+    if (err) return res.status(500).json({ message: "Lỗi server", err });
+    if (results.length === 0) return res.status(400).json({ message: "Mã xác nhận không hợp lệ hoặc đã hết hạn" });
+
+    res.json({ message: "Mã xác nhận hợp lệ. Bạn có thể đặt lại mật khẩu" });
+  });
+});
+
+app.post("/reset-password", async (req, res) => {
+  const { email, token, newPassword } = req.body;
+  if (!email || !token || !newPassword) return res.status(400).json({ message: "Thiếu thông tin cần thiết" });
+
+  // Kiểm tra độ mạnh của mật khẩu
+  if (newPassword.length < 8 || !/[A-Z]/.test(newPassword) || !/[0-9]/.test(newPassword)) {
+    return res.status(400).json({ message: "Mật khẩu phải có ít nhất 8 ký tự, gồm chữ hoa và số" });
+  }
+
+  const sql = `SELECT id FROM users WHERE email = ? AND reset_token = ? AND reset_token_expire > NOW()`;
+  db.query(sql, [email, token], async (err, results) => {
+    if (err) return res.status(500).json({ message: "Lỗi server", err });
+    if (results.length === 0) return res.status(400).json({ message: "Mã xác nhận không hợp lệ hoặc đã hết hạn" });
+
+    const userId = results[0].id;
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Sử dụng transaction để đảm bảo dữ liệu an toàn
+    db.beginTransaction((err) => {
+      if (err) return res.status(500).json({ message: "Lỗi server", err });
+
+      const sqlUpdate = `UPDATE users SET password = ?, reset_token = NULL, reset_token_expire = NULL WHERE id = ?`;
+      db.query(sqlUpdate, [hashedPassword, userId], (err) => {
+        if (err) {
+          db.rollback();
+          return res.status(500).json({ message: "Lỗi server", err });
+        }
+        
+        db.commit();
+        res.json({ message: "Mật khẩu đã được cập nhật thành công!" });
+      });
+    });
+  });
+});
+
+// API forgot-password
+app.post('/forgot-password', (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ message: 'Vui lòng nhập email!' });
+  }
+
+  // Kiểm tra xem email có tồn tại trong hệ thống không
+  const checkEmailSql = 'SELECT id FROM users WHERE email = ?';
+  db.query(checkEmailSql, [email], async (err, results) => {
+    if (err) return res.status(500).json({ message: 'Lỗi server', error: err });
 
     if (results.length === 0) {
-      return res.status(404).json({ thongbao: 'User not found' });
-    }
-    const user = results[0];
-    if (user.password !== passhientai) {
-      return res.status(400).json({ thongbao: 'Mật khẩu hiện tại không chính xác' });
+      return res.status(404).json({ message: 'Email không tồn tại trong hệ thống!' });
     }
 
-    db.query('UPDATE users SET password = ? WHERE id = ?', [newPassword, userId], (err) => {
-      if (err) return res.status(500).json({ thongbao: 'Lỗi database' });
+    // Tạo mã token để gửi qua email
+    const token = crypto.randomBytes(32).toString('hex');
+    const expireTime = new Date(Date.now() + 15 * 60 * 1000);
 
-      res.status(200).json({ thongbao: 'Đổi mật khẩu thành công!' });
+    // Lưu token vào cơ sở dữ liệu
+    const updateTokenSql = 'UPDATE users SET reset_token = ?, reset_token_expire = ? WHERE email = ?';
+    db.query(updateTokenSql, [token, expireTime, email], (err) => {
+      if (err) return res.status(500).json({ message: 'Lỗi server khi lưu token', error: err });
+
+      // Gửi email chứa mã token
+      const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: 'Xác nhận yêu cầu đặt lại mật khẩu',
+        html: `<p>Vui lòng nhập mã sau để xác nhận yêu cầu đặt lại mật khẩu:</p>
+               <h2>${token}</h2>
+               <p>Mã này có hiệu lực trong 15 phút.</p>`,
+      };
+
+      transporter.sendMail(mailOptions, (error) => {
+        if (error) return res.status(500).json({ message: 'Lỗi gửi email', error });
+
+        res.json({ message: 'Mã xác nhận đã được gửi tới email của bạn!' });
+      });
     });
   });
 });
