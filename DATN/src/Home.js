@@ -15,6 +15,7 @@ import { themSP } from './cartSlice';
     const navigate = useNavigate();
     const daDangNhap = useSelector(state => state.auth.daDangNhap);
     const [listsp, ganListSP] = useState( [] );
+    const danhSachSoSanh = useSelector(state => state.compare.danhSachSoSanh);
     
     useEffect ( () => {
        fetch("http://localhost:3000/spmoi/1")
@@ -55,6 +56,8 @@ import { themSP } from './cartSlice';
     const themSoSanhVaChuyenTrang = (sanpham) => {
             console.log("🔍 Sản phẩm thêm vào so sánh:", sanpham);
             dispatch(themVaoSoSanh(sanpham));
+            console.log(danhSachSoSanh);
+            
             setThongBao(true);
             setTimeout(() => {
                 setThongBao(false);
