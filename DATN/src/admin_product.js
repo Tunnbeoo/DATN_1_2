@@ -21,19 +21,19 @@ function AdminProduct() {
     }, [refresh]); 
     
     const xoaSP = (id) => {
-        if (window.confirm('Bạn chắc chắn muốn xóa sản phẩm này?') === false)  
-            return false;
-        fetch(`http://localhost:3000/admin/sp/${id}`, { method: 'delete' })
+        if (!window.confirm('Bạn chắc chắn muốn xóa sản phẩm này?')) return;
+    
+        fetch(`http://localhost:3000/admin/sp/${id}`, { method: 'DELETE' })
             .then(res => res.json())
             .then(data => {
-                if(data.thongbao){
-                    alert(data.thongbao);
-                }else{
-                    alert(data.thongbao);
-                    ganadminListSP(adminListSP.filter(product => product.id !== id));
+                alert(data.thongbao);
+                if (!data.error) {
+                    setRefresh(prev => !prev); // Cập nhật để reload dữ liệu
                 }
-            });
+            })
+            .catch(error => console.error("Lỗi xóa sản phẩm:", error));
     };
+ 
 
     const selectProduct = (product) => {
         setSelectedProduct(product);

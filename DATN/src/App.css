@@ -911,7 +911,6 @@ transition: all 0.5s ease
   display: flex;
   padding-left: 10px;
   padding-right: 10px;
-  padding-bottom: 15px;
   transform: translateY(-15px);
 }
 .box_SPL_icon_star_dam{
@@ -940,6 +939,23 @@ transition: all 0.5s ease
 .nut_chon_sap_xep{margin-left: 5%;transform: translateY(15px);}
 .nut_chon_sap_xep .nut_chon{
   display: flex;
+}
+.so_sanh {
+  margin-bottom: 5px;
+  text-align: right;
+  padding: 0 30px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.so_sanh_btn{
+  border-radius: 5px;
+  border: solid 1px rgb(0, 0, 0);
+  background: white;
+}
+.so_sanh_btn:hover{
+  background: #fdb813;
+  color: white;
+  border: none;
 }
 /* bộ lọc */
 
