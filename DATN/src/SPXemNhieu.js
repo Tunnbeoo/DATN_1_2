@@ -30,7 +30,7 @@ function SPXemNhieu() {
     slidesToShow: 5, // Hiển thị 4 sản phẩm trên desktop
     slidesToScroll: 1,
     autoplay: true,
-    autoplaySpeed: 2000,
+    autoplaySpeed: 1500,
     responsive: [
       {
         breakpoint: 1024,

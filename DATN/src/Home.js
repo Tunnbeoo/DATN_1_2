@@ -2,6 +2,7 @@
 import banner_n1 from './img/banner_n1.webp'
 import banner5 from './img/banner5.jpg'
 import { Link, useNavigate } from "react-router-dom";
+import { themVaoSoSanh } from './compareSlice';
 import { useState, useEffect } from 'react';
 // xử lí giỏ hàng
 import { useDispatch, useSelector } from 'react-redux';
@@ -51,7 +52,15 @@ import { themSP } from './cartSlice';
             setThongBao(false);
         }, 2000);
     };
-    
+    const themSoSanhVaChuyenTrang = (sanpham) => {
+            console.log("🔍 Sản phẩm thêm vào so sánh:", sanpham);
+            dispatch(themVaoSoSanh(sanpham));
+            setThongBao(true);
+            setTimeout(() => {
+                setThongBao(false);
+                navigate("/so-sanh"); // Chuyển đến trang so sánh sau khi thêm sản phẩm
+            }, 1000);
+        };
     return (
        <div>
           {thongBao && (
@@ -124,6 +133,11 @@ import { themSP } from './cartSlice';
                             <div className="box_SP_icon_star_dg"><p>(Đánh giá)</p></div>
                     
                         </div>
+                    <div className="so_sanh">
+                        <button className="so_sanh_btn" onClick={() => themSoSanhVaChuyenTrang(sp)}>
+                            So sánh
+                        </button>
+                    </div>
                     
                     </div>
                 </div>
