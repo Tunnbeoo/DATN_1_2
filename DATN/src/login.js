@@ -86,7 +86,7 @@ function Login() {
               <label style={{ marginLeft: '8px' }}>Show Password</label>
             </div>
             <div className="forget">
-              <Link to="/register">Đăng ký tài khoản!</Link>
+              <Link to="/logout">Đăng ký tài khoản!</Link>
             </div>
           </div>
 
