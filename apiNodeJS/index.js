@@ -50,6 +50,34 @@ app.get('/spmoi/:sosp?', function(req, res) {
       }
   });
 });
+app.get('/sp/:sosp?', function(req, res) {
+  let sosp = parseInt(req.params.sosp) || 8;
+  if (sosp <= 1) {
+      sosp = 1000;
+  }
+
+  let sql = `SELECT sp.id , sp.id_loai, sp.ten_sp, sp.gia, sp.gia_km, sp.hinh, sp.ngay, sp.luot_xem, tt.ram, tt.dia_cung
+              FROM san_pham sp
+              LEFT JOIN thuoc_tinh tt ON sp.id = tt.id_sp
+              WHERE sp.an_hien = 1
+              ORDER BY sp.ngay DESC
+              LIMIT ?`;
+
+  db.query(sql, [sosp], (err, data) => {
+      if (err) {
+          res.json({"Thông báo": "Lỗi lấy danh sách sản phẩm", "error": err});
+      } else {
+          data.forEach(sp => {
+              if (sp.gia && sp.gia_km) {
+                  sp.phan_tram_gg = Math.round(((sp.gia - sp.gia_km) / sp.gia) * 100);
+              } else {
+                  sp.phan_tram_gg = 0;
+              }
+          });
+          res.json(data);
+      }
+  });
+});
 
 app.get('/sphot', function(req, res) {
   let spxn = parseInt(req.params.spxn || 10);

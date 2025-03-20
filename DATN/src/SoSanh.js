@@ -3,8 +3,8 @@ import { xoaKhoiSoSanh } from "./compareSlice";
 import { Link } from "react-router-dom";
 
 function SoSanh() {
-    const state = useSelector((state) => state);
-    console.log("🔍 Redux State:", useSelector(state => state));
+    // const state = useSelector((state) => state);
+    // console.log("🔍 Redux State:", useSelector(state => state));
     const dispatch = useDispatch();
     // Cách an toàn để lấy danhSachSoSanh mà không bị lỗi
     const danhSachSoSanh = useSelector((state) => state.compare?.danhSachSoSanh || []);
@@ -24,9 +24,11 @@ function SoSanh() {
                             <tr>
                                 <th>Hình ảnh</th>
                                 <th>Tên sản phẩm</th>
+                                <th>CPU</th>
                                 <th>RAM</th>
                                 <th>SSD</th>
                                 <th>Giá</th>
+                                <th>Màu</th>
                                 <th>Hành động</th>
                             </tr>
                         </thead>
@@ -35,9 +37,11 @@ function SoSanh() {
                                 <tr key={sp.id}>
                                     <td><img src={sp.hinh} alt={sp.ten_sp} width="100" /></td>
                                     <td>{sp.ten_sp}</td>
+                                    <td>{sp.cpu}</td>
                                     <td>{sp.ram}</td>
                                     <td>{sp.dia_cung}</td>
                                     <td>{parseFloat(sp.gia_km).toLocaleString("vi")} VNĐ</td>
+                                    <td>{sp.mau_sac}</td>
                                     <td>
                                         <button onClick={() => dispatch(xoaKhoiSoSanh(sp.id))}>Xóa</button>
                                     </td>

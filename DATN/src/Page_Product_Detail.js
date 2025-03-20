@@ -73,13 +73,8 @@ function ProductDetail () {
                                 <img src={sp.hinh} alt={sp.hinh}/>
                             </div>
                         </div>
-                        <div style={{display:'grid',gridTemplateColumns:'auto auto', justifyContent:'center',alignItems:'center'}}>
-                            <div style={{marginRight: '10px',fontWeight: '600'}}>Chia sẻ:</div>
-                            <div style={{display: 'flex',cursor: 'pointer'}}>
-                                <div><i style={{fontSize: '30px',color: '#fff',background: '#4267b2',borderRadius: '50%',marginRight: '10px'}} className="bi bi-facebook"></i></div>
-                                <div> <i style={{fontSize: '32px',color: '#fff',background: '#e60023',borderRadius: '50%',marginRight: '10px'}}  className="bi bi-pinterest"></i></div>
-                                <div><button style={{border: '1px solid #77c7f7',background: '#77c7f7',borderRadius: '50%',padding: '4px',cursor: 'pointer',width:'38px', marginTop:'5px'}}><i style={{fontSize: '17px',color: '#fff'}} class="bi bi-twitter"></i></button></div>
-                            </div>
+                        <div>
+                            <img src="https://cdn.tgdd.vn/Products/Images/44/320870/Kit/acer-aspire-lite-15-51m-5542-i5-nxks5sv001-glr-n.jpg"/>
                         </div>
                         <div style={{textAlign: 'center',display:'grid',justifyContent:'center'}}>
                             <h3 style={{fontSize:'30px',marginTop:'20px'}}>Mô tả chi tiết sản phẩm!!</h3>
@@ -89,8 +84,10 @@ function ProductDetail () {
                             <p style={{}}>Tình trạng: Mới 100%</p>
                             <p style={{}}>Nguyên hộp, đầy đủ phụ kiện từ nhà sản xuất: Dây nguồn; Sách hướng dẫn; Sạc Laptop</p>
                         </div>
-                    </div>
+                        </div>
+                    
                     <div className=" box_sub sub_row2">
+
                         <div className="col border_bt" >
                             <div className="ten_text">{sp.ten_sp}</div>
                             <div style={{marginTop: '5px',fontSize:'15px'}}>Tình trạng: <a href="#/" style={{color: '#C0C0C0'}}>Còn hàng</a>   |   Mã SKU: <a href="#/" style={{color: '#C0C0C0'}}>Đang cập nhật</a></div>
@@ -115,7 +112,7 @@ function ProductDetail () {
                                 </div>
                                 </div>
                                 <div className="tt_sp">
-                                    <strong>243</strong> sản phẩm đã bán
+                                còn lại  <strong>200</strong> sản phẩm
                                 </div>
                                 <div className="progress-bar">
                                     <div className="progress-bar-fill"></div>
@@ -124,12 +121,6 @@ function ProductDetail () {
                             </div>
                         </div>
                         <div className="col">
-                            <div className="chon_sl">
-                                <div className="text_sl">Số lượng: </div>
-                                <div><button>-</button></div>
-                                        <div style={{color: 'black'}}>1</div>
-                                <div><button>+</button></div>
-                            </div>
                             <div className="mua_them_btn"> 
                                 <div><button className="mt_btn1">Mua Ngay</button></div>
                                 <div className='add_SP' onClick={() => xuli(sp)}><button className="mt_btn2">Thêm vào giỏ hàng</button></div>
@@ -138,25 +129,6 @@ function ProductDetail () {
                                 <div style={{fontSize: '20px',fontFamily: 'Arial, Helvetica, sans-serif',fontWeight: '400'}}><strong>Phương thức thanh toán</strong></div><br/>
                                 <div style={{cursor:'pointer',transform:'translateX(-20px)'}}><img src={nganhang} alt={nganhang} /></div>
                             </div>
-                            <hr style={{border: '1px solid rgb(239, 239, 239)',marginTop: '15px'}} />
-                        </div>
-                        <div className="">
-                            <div className="content_img">
-                                <div>
-                                <div><img src={cart} alt={cart} />Giao hàng toàn quốc</div>
-                                <div><img src={phieugiam} alt={phieugiam} />Giảm 5% khi thanh toán online</div>
-                                </div>
-                                <div>
-                                <div><img src={qua} alt={qua} />Tích điểm tất cả sản phẩm</div>
-                                <div><img src={camket} alt={camket} />Cam kết chính hãng</div>
-                                </div>
-                            </div>
-                
-                        </div>
-                        
-                    </div>
-                    <div className=" box_sub sub_row3">
-                        <div className="bc_phieu">
                             <div className="box_phieu_gg">
                                 <div className="phieu_gg">
                                     <div className="box_img_pgg"><img src={anh4} style={{width:'60px', height:'50px'}} alt={anh4} /></div>
@@ -173,43 +145,9 @@ function ProductDetail () {
                                     </div>
                                 </div>
                             </div>
-                
-                            <div className="box_phieu_gg">
-                                <div className="phieu_gg">
-                                    <div className="box_img_pgg"><img src={anh1} style={{width:'60px', height:'50px'}} alt={anh1} /></div>
-                                    <div className="box_content_pgg">
-                                    <a href="#/" style={{color: '#149b9b',fontWeight: '600'}}>NHẬN MÃ: EGA50</a>
-                                    <p style={{fontSize: '13px',color: 'rgb(157, 157, 157)',marginTop: '-3px'}}>Mã giảm 10% cho đơn tối thiểu 100k.</p>
-                                    <div style={{display: 'flex'}}>
-                                        <div style={{marginTop: '-20px',fontSize:'12px',fontWeight:'650'}}>
-                                        <p>Mã: EGA10</p>
-                                        <p style={{transform:'translateY(-20px)'}}>HSD: 08/07/2023</p>
-                                        </div>
-                                        <div style={{marginLeft: '30px'}}><img src={outdatew} style={{width: '45px', height:'38px',transform:'translateY(-20px)'}} alt={outdatew} /></div>
-                                    </div>
-                                    </div>
-                                </div>
-                            </div>
-                
-                            <div className="box_phieu_gg">
-                            <div className="phieu_gg">
-                                <div className="box_img_pgg"><img src={anh2} style={{width:'60px', height:'50px'}} alt={anh2} /></div>
-                                <div className="box_content_pgg">
-                                    <a href="#/" style={{color: '#149b9b',fontWeight: '600'}}>NHẬN MÃ: EGA99K</a>
-                                    <p style={{fontSize: '13px',color: 'rgb(157, 157, 157)',marginTop: '-3px'}}>Mã giảm 10% cho đơn tối thiểu 100k.</p>
-                                    <div style={{display: 'flex'}}>
-                                    <div style={{marginTop: '-20px',fontSize:'12px',fontWeight:'650'}}>
-                                        <p>Mã: EGA10</p>
-                                        <p style={{transform:'translateY(-20px)'}}>HSD: 31/10/2023</p>
-                                    </div>
-                                    <div style={{marginLeft: '30px'}}><img src={outdatew} style={{width: '45px', height:'38px',transform:'translateY(-20px)'}} alt={outdatew} /></div>
-                                    </div>
-                                </div>
-                            </div>
-                            </div>
-                    
-                         
-
+                            <hr style={{border: '1px solid rgb(239, 239, 239)',marginTop: '15px'}} />
+                        </div>
+                        <div className="bc_phieu">
                             <div style={{}}>
                                 <h2 style={{fontSize:'22px', fontWeight:'600'}}> Cấu hình máy {sp.ten_sp}</h2>
                                 <table class="table">
@@ -250,12 +188,35 @@ function ProductDetail () {
                                         <th style={{fontSize:'15px'}}>Ngày sản xuất:</th>
                                         <td style={{fontSize:'16px'}}>{new Date(sp.ngay).toLocaleDateString('vi-VN')}</td>
                                     </tr>
+                                    <tr className="table-secondary">
+                                        <th scope="row">Màn hình</th>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <th style={{fontSize:'15px'}}>Màn hình</th>
+                                        <td style={{fontSize:'16px'}}>15.6", Full HD (1920 x 1080)</td>
+                                    </tr>
+                                    <tr className="table-secondary">
+                                        <th scope="row">Card đồ họa</th>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <th style={{fontSize:'15px'}}>Card đồ họa</th>
+                                        <td style={{fontSize:'16px'}}>Card tích hợp, Intel Iris Xe</td>
+                                    </tr>
+                                    <tr className="table-secondary">
+                                        <th scope="row"> kết nối</th>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <th style={{fontSize:'15px'}}>Cổng kết nối</th>
+                                        <td style={{fontSize:'16px'}}>USB Type-C, LAN (RJ45), Jack tai nghe 3.5 mm, HDMI, 2 x USB 2.0, 1 x USB</td>
+                                    </tr>
                                 </tbody>
                                 </table>
+                                
                             </div>
                         </div>
-                     
-
                     </div>
                 </div>
           

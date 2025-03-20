@@ -26,7 +26,7 @@ import ProtectedRoute from './ProtectedRoute';
 import UppdatePassWord from './doi_pass';
 import Logout from './logout';
 import AdminCategory from './admin_category';
-
+import Laptop from './laptop';
 function App() {
   const daDangNhap = useSelector(state => state.auth.daDangNhap);
   const [showHeaderFooter, setShowHeaderFooter] = useState(true);
@@ -56,6 +56,37 @@ function App() {
             <div className="container1">
               <Menu />
             </div>
+            <div class="menu_p">
+            <a href="#"><i class="fas fa-eye"></i> Sản phẩm bạn vừa xem</a>
+            <a href="#"><i class="fas fa-fire"></i> Sản phẩm mua nhiều</a>
+            <a href="#"><i class="fas fa-percent"></i> Sản phẩm khuyến mãi</a>
+            <a href="#"><i class="fas fa-credit-card"></i> Hình thức thanh toán</a>
+            </div>
+            <div class="navbar">
+            <div class="navbar-left">
+                <div class="dropdown">
+                  <a href="#" class="nav-item dropbtn">
+                    ☰ Danh mục sản phẩm
+                  </a>
+                  <div class="dropdown-content">
+                  <Link to= {`/laptop`} routerLinkActive="a"><a href="#">LapTop</a></Link>
+                    <a href="#">Phụ kiện</a>
+                    <a href="#">Phần mềm</a>
+                    </div>
+                </div>
+              </div>
+            <div class="navbar-right">
+              <a href="" class="nav-item">
+              <i class="fa-solid fa-newspaper"></i> Thủ thuật & Tin Tức
+              </a>
+              <a href="#" class="nav-item">
+              <i class="fa-solid fa-circle-dollar-to-slot"></i> Hướng dẫn mua hàng
+              </a>
+              <a href="#" class="nav-item">
+              <i class="fa-solid fa-hand-holding-hand"></i> Liên hệ hợp tác
+              </a>
+            </div>
+          </div>
           </nav>
         </header>
       )}
@@ -91,7 +122,7 @@ function App() {
           <Route path="*" element={<NotFound />} />
           <Route path="/hien-thi-san-pham" element={<HienSPTrongMotTrang />} />
           <Route path="/so-sanh" element={<SoSanh />} />
-
+          <Route path="/laptop" element={<Laptop/>} />
           <Route element={<ProtectedRoute />}>
             <Route path="/showcart" element={<ShowCart />} />
             <Route path="/thanhtoan/" element={<ThanhToan />} />
