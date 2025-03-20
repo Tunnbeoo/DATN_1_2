@@ -1,4 +1,3 @@
-
 import banner_n1 from './img/banner_n1.webp'
 import banner5 from './img/banner5.jpg'
 import { Link, useNavigate } from "react-router-dom";
@@ -8,8 +7,7 @@ import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { themSP } from './cartSlice';
 
-
- function Home() { 
+function Home() { 
     document.title="Trang chủ";
     const dispatch = useDispatch();
     const navigate = useNavigate();

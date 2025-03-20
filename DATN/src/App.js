@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import './App.css';
 import Footer from './footer';
@@ -27,9 +27,13 @@ import UppdatePassWord from './doi_pass';
 import Logout from './logout';
 import AdminCategory from './admin_category';
 import Laptop from './laptop';
+import RecentlyViewedProducts from './RecentlyViewedProducts';
+
 function App() {
   const daDangNhap = useSelector(state => state.auth.daDangNhap);
   const [showHeaderFooter, setShowHeaderFooter] = useState(true);
+  const [showRecentlyViewed, setShowRecentlyViewed] = useState(false);
+  const dropdownRef = useRef(null);
   const location = useLocation();
 
   useEffect(() => {
@@ -39,6 +43,19 @@ function App() {
       setShowHeaderFooter(true);
     }
   }, [location]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowRecentlyViewed(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   return (
     <div className='container-fulid'>
@@ -56,13 +73,26 @@ function App() {
             <div className="container1">
               <Menu />
             </div>
-            <div class="menu_p">
-            <a href="#"><i class="fas fa-eye"></i> Sản phẩm bạn vừa xem</a>
-            <a href="#"><i class="fas fa-fire"></i> Sản phẩm mua nhiều</a>
-            <a href="#"><i class="fas fa-percent"></i> Sản phẩm khuyến mãi</a>
-            <a href="#"><i class="fas fa-credit-card"></i> Hình thức thanh toán</a>
+            <div className="menu_p" ref={dropdownRef}>
+              <div className="menu-item">
+                <a href="#" onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowRecentlyViewed(!showRecentlyViewed);
+                }}>
+                  <i className="fas fa-eye" aria-hidden="true"></i> Sản phẩm bạn vừa xem
+                </a>
+                {showRecentlyViewed && (
+                  <div className="recently-viewed-dropdown">
+                    <RecentlyViewedProducts />
+                  </div>
+                )}
+              </div>
+              <a href="#"><i className="fas fa-fire" aria-hidden="true"></i> Sản phẩm mua nhiều</a>
+              <a href="#"><i className="fas fa-percent" aria-hidden="true"></i> Sản phẩm khuyến mãi</a>
+              <a href="#"><i className="fas fa-credit-card" aria-hidden="true"></i> Hình thức thanh toán</a>
             </div>
-            <div class="navbar">
+            <div className="navbar">
             <div class="navbar-left">
                 <div class="dropdown">
                   <a href="#" class="nav-item dropbtn">

@@ -2,10 +2,11 @@ import React from "react";
 import { Link, NavLink } from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux';
 import { thoat } from './authSlice';
+import { selectCartItemCount } from './redux/cartSlice';
 // const doimoi = 'https://cdn.tgdd.vn/content/may-cu-24x24.png';
 
 function Menu() {
-  const cartItemCount = useSelector(state => state.cart.listSP.length);
+  const cartItemCount = useSelector(selectCartItemCount);
   const user = useSelector(state => state.auth.user);
   const daDangNhap = useSelector(state => state.auth.daDangNhap);
   const dispatch = useDispatch();

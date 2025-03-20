@@ -1,4 +1,3 @@
-
 import anh4 from './img/anh4.png';
 import outdatew from './img/outdated.webp';
 import anh1 from './img/anh1.png';
@@ -13,6 +12,7 @@ import { Link, useParams } from 'react-router-dom';
 // xử lí giỏ hàng
 import { useDispatch } from 'react-redux';
 import { themSP } from './cartSlice';
+import { addToRecentlyViewed } from './redux/recentlyViewedSlice';
 
 function ProductDetail () {
     document.title="Chi tiết sản phẩm"
@@ -23,8 +23,24 @@ function ProductDetail () {
     useEffect(() => {
         fetch(`http://localhost:3000/sp/${id}/${id_loai}`)
             .then(res => res.json())
-            .then(data => { setSanPham(data); });
-    }, [id,id_loai]);
+            .then(data => { 
+                setSanPham(data);
+                // Thêm sản phẩm vào danh sách đã xem
+                if (data && data.length > 0) {
+                    const product = data[0];
+                    // Chuyển đổi dữ liệu sản phẩm sang định dạng phù hợp
+                    const transformedProduct = {
+                        id: product.id,
+                        tensp: product.ten_sp,
+                        hinh: product.hinh,
+                        gia: parseFloat(product.gia_km || product.gia),
+                        id_loai: product.id_loai
+                    };
+                    console.log('Adding to recently viewed:', transformedProduct); // Thêm log để debug
+                    dispatch(addToRecentlyViewed(transformedProduct));
+                }
+            });
+    }, [id,id_loai, dispatch]);
 
     useEffect(() => {
         fetch(`http://localhost:3000/sptrongloai/${id_loai}`)
