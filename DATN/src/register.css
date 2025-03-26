@@ -74,6 +74,7 @@
 .social-btn:hover {
     background: #f5f5f7;
     border-color: #86868b;
+    transform: translateY(-2px);
 }
 
 .social-btn i {
@@ -115,6 +116,18 @@
 /* Form đăng nhập */
 .input-group {
     margin-bottom: 20px;
+    animation: fadeInUp 0.5s ease-in-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .input-group label {
@@ -180,16 +193,6 @@
     margin: 0;
 }
 
-.forgot-password {
-    color: #0071e3;
-    text-decoration: none;
-    font-size: 14px;
-}
-
-.forgot-password:hover {
-    text-decoration: underline;
-}
-
 /* Nút đăng nhập */
 .login-btn {
     width: 100%;
@@ -206,6 +209,7 @@
 
 .login-btn:hover {
     background: #0077ed;
+    transform: translateY(-2px);
 }
 
 /* Đăng ký */
@@ -220,13 +224,12 @@
     color: #0071e3;
     text-decoration: none;
     font-weight: 500;
+    transition: all 0.2s ease;
 }
 
 .register a:hover {
     text-decoration: underline;
-}
-.input-group-login {
-    display: grid;
+    color: #0077ed;
 }
 
 /* Responsive */
@@ -243,4 +246,4 @@
         width: 40px;
         height: 40px;
     }
-}
+} 

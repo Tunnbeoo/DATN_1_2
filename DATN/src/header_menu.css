@@ -1,0 +1,355 @@
+/* Menu styles */
+.menu {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    background: black;
+    gap: 20px;
+    align-items: center;
+}
+
+.menu > .box_menu {
+    display: flex;
+    align-items: center;
+}
+
+.menu > .box_menu > img {
+    width: 100px;
+    height: 100px;
+}
+
+/* Main menu styles */
+.main-menu {
+    flex-grow: 1;
+}
+
+.main-menu ul {
+    list-style: none;
+    display: flex;
+    margin: 0;
+    padding: 0;
+}
+
+.main-menu ul li {
+    position: relative;
+}
+
+.main-menu ul li a {
+    color: white;
+    text-decoration: none;
+    padding: 10px 15px;
+    display: block;
+    font-weight: 500;
+    transition: background 0.3s ease;
+}
+
+.main-menu ul li a:hover {
+    background: #333;
+}
+
+/* Dropdown menu styles */
+.main-menu ul li .dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: white;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    border-radius: 5px;
+    z-index: 1000;
+    min-width: 150px;
+}
+
+.main-menu ul li:hover .dropdown {
+    display: block;
+}
+
+.main-menu ul li .dropdown li {
+    display: block;
+}
+
+.main-menu ul li .dropdown li a {
+    color: #333;
+    padding: 10px 15px;
+    font-size: 14px;
+}
+
+.main-menu ul li .dropdown li a:hover {
+    background: #f5f5f5;
+    color: #fdb813;
+}
+
+/* Các kiểu dáng khác giữ nguyên */
+.menu > .box_menu > div > a {
+    padding: 10px;
+    color: black;
+    font-weight: 700;
+    font-size: 15px;
+}
+
+.menu > .box_menu > div > a:hover {
+    background: rgb(237, 237, 237);
+    border-radius: 5px;
+    color: #149b9b;
+}
+
+/* Search button styles */
+.search {
+    display: flex;
+    align-items: center;
+    margin-top: 0 !important;
+}
+
+.search input {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 5px;
+    margin-right: 5px;
+    width: 300px;
+}
+
+.search i {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.search:hover {
+    color: #149b9b;
+}
+
+/* User menu styles */
+.user-menu {
+    position: relative;
+    display: inline-block;
+    margin-top: 0 !important;
+}
+
+.user-menu .btn {
+    margin-top: 0 !important;
+    background: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    border: none;
+}
+
+.user-menu .btn i {
+    font-size: 22px;
+    color: #333;
+    transition: color 0.3s ease;
+}
+
+.user-menu .btn:hover i {
+    color: #fdb813;
+}
+
+/* Dropdown menu styles */
+.box_an_us_adm {
+    position: absolute !important;
+    top: calc(100% + 5px);
+    right: 0;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    width: 180px;
+    padding: 8px 0;
+    display: none;
+    z-index: 1000;
+    transition: opacity 0.3s ease, transform 0.2s ease;
+    transform: translateY(10px);
+}
+
+.user-menu:hover .box_an_us_adm {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.triangle-box_user {
+    position: absolute;
+    top: -8px;
+    right: 16px;
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 8px solid white;
+}
+
+.box_an_us_adm li {
+    list-style: none;
+    padding: 8px 15px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    text-align: left;
+}
+
+.box_an_us_adm li a {
+    text-decoration: none !important;
+    color: #333;
+    display: block;
+    transition: color 0.3s ease;
+    width: 100%;
+}
+
+.box_an_us_adm li:hover {
+    background: #f5f5f5;
+}
+
+.box_an_us_adm li a:hover {
+    color: #fdb813;
+}
+
+.box_an_us_adm .divider {
+    border-bottom: 1px solid rgb(210, 210, 210);
+    margin: 5px 0;
+    height: 1px;
+}
+
+.box_an_us_adm .logout {
+    font-weight: 700;
+    color: red;
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: center;
+    cursor: pointer;
+    padding: 8px 15px;
+    font-size: 14px;
+}
+
+.box_an_us_adm .logout:hover {
+    background: rgba(255, 0, 0, 0.1);
+}
+
+/* User actions styles */
+.user-actions {
+    display: flex;
+    align-items: center;
+    height: 50.6px;
+    margin-left: 0;
+}
+
+.user-actions a {
+    color: white;
+    text-decoration: none;
+    margin-left: 20px;
+    display: flex;
+    align-items: center;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 25px;
+    transition: background-color 0.3s ease;
+}
+
+.user-actions a:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.user-actions a i {
+    margin-right: 8px;
+    font-size: 20px;
+}
+
+/* Cart styles */
+#box_tim_gio_user {
+    display: flex;
+    align-items: center;
+    margin: -10px 30px 0 0 !important;
+}
+
+.cart_box {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.cart_box > a {
+    color: white;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 25px;
+    transition: background-color 0.3s ease;
+    border: none;
+    gap: 12px;
+}
+
+.cart_box > a:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.cart {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.about__box-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.about__box-icon svg {
+    width: 25px;
+    height: 25px;
+}
+
+.about__box-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.about__box-content .title {
+    color: white;
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.2;
+}
+
+#items_in_cart {
+    background: #ff4d4f;
+    color: white;
+    min-width: 24px;
+    height: 24px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 0 6px;
+    margin-left: 4px;
+}
+
+/* Responsive styles */
+@media only screen and (max-width: 480px) {
+    .menu {
+        display: block;
+    }
+
+    .menu > .box_menu {
+        display: block;
+    }
+
+    .menu > .box_menu > div {
+        padding: 10px;
+        color: black;
+        font-weight: 700;
+    }
+
+    .menu > .box_menu > div:hover {
+        background: rgb(237, 237, 237);
+        border-radius: 5px;
+        color: #149b9b;
+    }
+}
