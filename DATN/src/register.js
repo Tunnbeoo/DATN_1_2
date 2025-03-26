@@ -1,29 +1,35 @@
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import './login.css';
+import { Link, useNavigate } from 'react-router-dom';
+import './register.css';
 import React, { useRef, useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { dalogin } from './authSlice';
 
-function Login() {
+function Register() {
   const navigate = useNavigate();
-  const location = useLocation();
   const emailRef = useRef();
   const passwordRef = useRef();
-  const dispatch = useDispatch();
+  const confirmPasswordRef = useRef();
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  document.title = "Đăng nhập";
+  document.title = "Đăng ký";
 
   const submitDuLieu = (e) => {
     e.preventDefault();
 
-    if (!emailRef.current.value || !passwordRef.current.value) {
+    if (!emailRef.current.value || !passwordRef.current.value || !confirmPasswordRef.current.value) {
       alert("Nhập đủ thông tin nhé bạn ơi");
       return;
     }
 
-    const url = "http://localhost:3000/login";
-    let tt = { email: emailRef.current.value, password: passwordRef.current.value };
+    if (passwordRef.current.value !== confirmPasswordRef.current.value) {
+      alert("Mật khẩu xác nhận không khớp!");
+      return;
+    }
+
+    const url = "http://localhost:3000/register";
+    let tt = { 
+      email: emailRef.current.value, 
+      password: passwordRef.current.value 
+    };
     const opt = {
       method: "POST",
       body: JSON.stringify(tt),
@@ -36,11 +42,9 @@ function Login() {
         if (data.thongbao) {
           alert(data.thongbao);
         }
-        if (data.token && data.userInfo) {
-            dispatch(dalogin(data));
-            localStorage.setItem("userId", data.userInfo.id);
-            const from = location.state?.from?.pathname || '/';
-            navigate(from);
+        if (data.success) {
+          alert("Đăng ký thành công!");
+          navigate('/login');
         }
       })
   };
@@ -48,7 +52,7 @@ function Login() {
   return (
     <div className="login-container">
       <div className="login-box">
-        <h1>Đăng nhập</h1>
+        <h1>Đăng ký</h1>
         <div className="social-buttons">
           <button className="social-btn google">
             <i className="fa-brands fa-google"></i>
@@ -90,30 +94,41 @@ function Login() {
               ></i>
             </div>
           </div>
+          <div className="input-group input-group-login">
+            <label>Xác nhận mật khẩu</label>
+            <div className="password-wrapper">
+              <input 
+                type={showConfirmPassword ? "text" : "password"}
+                ref={confirmPasswordRef}
+                placeholder="Nhập lại mật khẩu"
+                required
+              />
+              <i 
+                className={`fa-solid ${showConfirmPassword ? "fa-eye-slash" : "fa-eye"}`}
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              ></i>
+            </div>
+          </div>
           <div className="options">
             <div className="remember-me">
               <input 
                 type="checkbox" 
-                id="remember"
-                checked={showPassword}
-                onChange={() => setShowPassword(!showPassword)}
+                id="terms"
+                required
               />
-              <label htmlFor="remember">Hiển thị mật khẩu</label>
+              <label htmlFor="terms">Tôi đồng ý với điều khoản sử dụng</label>
             </div>
-            <Link to="/forgot-password" className="forgot-password">
-              Quên mật khẩu?
-            </Link>
           </div>
           <button type="submit" className="login-btn">
-            Đăng nhập
+            Đăng ký
           </button>
         </form>
         <div className="register">
-          Chưa có tài khoản? <Link to="/register">Đăng ký ngay</Link>
+          Đã có tài khoản? <Link to="/login">Đăng nhập</Link>
         </div>
       </div>
     </div>
   );
 }
 
-export default Login;
+export default Register; 

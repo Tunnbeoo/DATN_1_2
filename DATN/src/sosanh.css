@@ -1,0 +1,276 @@
+/* Trang so sánh sản phẩm */
+.pro-compare_main {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  }
+  
+  .title-cp {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    text-align: center;
+    margin-bottom: 30px;
+  }
+  
+  .product-cp {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 30px;
+  }
+  
+  .productname-cp {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    text-align: center;
+    padding: 10px;
+    background: #f5f5f5;
+    border-radius: 8px;
+  }
+  
+  .box-detailcp {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+  }
+  
+  .stick-df {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    padding: 10px;
+    border-radius: 6px;
+    transition: background-color 0.3s;
+  }
+  
+  .stick-df:hover {
+    background-color: #e9ecef;
+  }
+  
+  .icon-tickbox {
+    color: #fdb813;
+    font-size: 20px;
+  }
+  
+  .productitem-cp {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s;
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .productitem-cp:hover {
+    transform: translateY(-5px);
+  }
+  
+  .item-label {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+  }
+  
+  .ln-new, .lb-tragop {
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background: #fdb813;
+    color: #fff;
+  }
+  
+  .item-img {
+    width: 100%;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  
+  .thumb {
+    max-width: 200px;
+    height: auto;
+    border-radius: 8px;
+  }
+  
+  .result-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 10px 0;
+    color: #666;
+  }
+  
+  .item-compare {
+    display: flex;
+    gap: 15px;
+    margin: 15px 0;
+  }
+  
+  .gray-bg {
+    background: #f8f9fa;
+    padding: 8px;
+    border-radius: 6px;
+  }
+  
+  .price {
+    color: #ff4d4f;
+    font-size: 20px;
+    font-weight: bold;
+    margin: 10px 0;
+  }
+  
+  .rating_Compare {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 10px 0;
+  }
+  
+  .vote-txt {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #fdb813;
+  }
+  
+  .deleteProduct {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    color: #666;
+    transition: color 0.3s;
+  }
+  
+  .deleteProduct:hover {
+    color: #ff4d4f;
+  }
+  
+  .addsp-cp {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 300px;
+    height: 200px;
+    border: 2px dashed #ddd;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  
+  .addsp-cp:hover {
+    border-color: #fdb813;
+    background: #fff8e6;
+  }
+  
+  .plus {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #fdb813;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+  }
+  
+  .plus i {
+    color: #fff;
+    font-size: 24px;
+  }
+  
+  /* Box so sánh ở trang chủ */
+  .stickcompare {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #fff;
+    padding: 20px;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+  }
+  
+  .listcompare {
+    display: flex;
+    gap: 20px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    overflow-x: auto;
+  }
+  
+  .listcompare li {
+    position: relative;
+    min-width: 200px;
+  }
+  
+  .remove-ic-compare {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    cursor: pointer;
+    color: #666;
+  }
+  
+  .remove-ic-compare:hover {
+    color: #ff4d4f;
+  }
+  
+  .closecompare {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 20px;
+  }
+  
+  .doss, .txtremoveall {
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.3s;
+  }
+  
+  .doss {
+    background: #fdb813;
+    color: #fff;
+  }
+  
+  .doss:hover {
+    background: #e69f00;
+  }
+  
+  .txtremoveall {
+    background: #f5f5f5;
+    color: #666;
+  }
+  
+  .txtremoveall:hover {
+    background: #e9ecef;
+  }
+  
+  .clearall {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #666;
+    text-decoration: none;
+    transition: color 0.3s;
+  }
+  
+  .clearall:hover {
+    color: #ff4d4f;
+  }

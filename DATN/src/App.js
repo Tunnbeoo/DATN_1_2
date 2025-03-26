@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
-import './App.css';
+import { useSelector } from 'react-redux'; // Thêm import useSelector từ react-redux
+import './main.css';
 import Footer from './footer';
 import PageHome from './Page_Home';
 import Menu from './Menu';
@@ -17,162 +18,157 @@ import Admin from './admin_dashborad';
 import AdminProduct from './admin_product';
 import AdminUser from './admin_user';
 import AdminOrder from './admin_order';
-import Login from './login';
-import { useSelector } from 'react-redux';
+import Auth from './auth'; // Đã sửa tên file thành chữ thường để khớp với hệ thống
 import ForgotPassword from './ForgotPassword';  
 import HienSPTrongMotTrang from './HienSPTrongMotTrang';
 import SoSanh from './SoSanh';
 import ProtectedRoute from './ProtectedRoute';
 import UppdatePassWord from './doi_pass';
-import Logout from './logout';
 import AdminCategory from './admin_category';
-import Laptop from './laptop';
-import RecentlyViewedProducts from './RecentlyViewedProducts';
 
 function App() {
-  const daDangNhap = useSelector(state => state.auth.daDangNhap);
+  const daDangNhap = useSelector(state => state.auth.daDangNhap); // Dòng này giờ sẽ hoạt động
   const [showHeaderFooter, setShowHeaderFooter] = useState(true);
-  const [showRecentlyViewed, setShowRecentlyViewed] = useState(false);
-  const dropdownRef = useRef(null);
   const location = useLocation();
 
   useEffect(() => {
-    if (['/admin', '/admin/product', '/admin/user', '/admin/order', '/admin/category', '/login', '/logout'].includes(location.pathname)) {
+    if (['/admin', '/admin/product', '/admin/user', '/admin/order', '/admin/category', '/auth', '/forgot-password'].includes(location.pathname)) {
       setShowHeaderFooter(false);
     } else {
       setShowHeaderFooter(true);
     }
   }, [location]);
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setShowRecentlyViewed(false);
-      }
-    };
+  return React.createElement(
+    'div',
+    { className: 'container-fulid' },
+    showHeaderFooter && React.createElement(
+      'header',
+      { id: 'header' },
+      React.createElement(
+        'nav',
+        { id: 'navv' },
+        React.createElement(
+          'div',
+          { className: 'top-bar' },
+          React.createElement('span', null, 'HOTLINE: 0123456789'),
+          React.createElement(
+            'div',
+            { className: 'top-links' },
+            React.createElement('a', { href: '#' }, React.createElement('i', { className: 'fas fa-info-circle' }), ' Hướng dẫn mua hàng'),
+            React.createElement('a', { href: '#' }, React.createElement('i', { className: 'fas fa-gift' }), ' Ưu đãi khách hàng'),
+            React.createElement('a', { href: '#' }, React.createElement('i', { className: 'fas fa-phone' }), ' Thông tin liên hệ')
+          )
+        ),
+        React.createElement(
+          'div',
+          { className: 'container1' },
+          React.createElement(Menu, null)
+        )
+      )
+    ),
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
+    // Box tìm kiếm
+    React.createElement(
+      'div',
+      {
+        style: { marginTop: '5%', width: '50%', marginLeft: '25%' },
+        className: 'modal fade',
+        id: 'staticBackdrop',
+        'data-bs-backdrop': 'static',
+        'data-bs-keyboard': 'false',
+        tabIndex: '-1',
+        'aria-labelledby': 'staticBackdropLabel',
+        'aria-hidden': 'true',
+      },
+      React.createElement(ThanhTimKiem, null)
+    ),
 
-  return (
-    <div className='container-fulid'>
-      {showHeaderFooter && (
-        <header id="header">
-          <nav id="navv">
-            <div className="top-bar">
-              <span>HOTLINE: 0123456789</span>
-              <div className="top-links">
-                <a href="#"><i className="fas fa-info-circle"></i> Hướng dẫn mua hàng</a>
-                <a href="#"><i className="fas fa-gift"></i> Ưu đãi khách hàng</a>
-                <a href="#"><i className="fas fa-phone"></i> Thông tin liên hệ</a>
-              </div>
-            </div>
-            <div className="container1">
-              <Menu />
-            </div>
-            <div className="menu_p" ref={dropdownRef}>
-              <div className="menu-item">
-                <a href="#" onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setShowRecentlyViewed(!showRecentlyViewed);
-                }}>
-                  <i className="fas fa-eye" aria-hidden="true"></i> Sản phẩm bạn vừa xem
-                </a>
-                {showRecentlyViewed && (
-                  <div className="recently-viewed-dropdown">
-                    <RecentlyViewedProducts />
-                  </div>
-                )}
-              </div>
-              <a href="#"><i className="fas fa-fire" aria-hidden="true"></i> Sản phẩm mua nhiều</a>
-              <a href="#"><i className="fas fa-percent" aria-hidden="true"></i> Sản phẩm khuyến mãi</a>
-              <a href="#"><i className="fas fa-credit-card" aria-hidden="true"></i> Hình thức thanh toán</a>
-            </div>
-            <div className="navbar">
-            <div class="navbar-left">
-                <div class="dropdown">
-                  <a href="#" class="nav-item dropbtn">
-                    ☰ Danh mục sản phẩm
-                  </a>
-                  <div class="dropdown-content">
-                  <Link to= {`/laptop`} routerLinkActive="a"><a href="#">LapTop</a></Link>
-                    <a href="#">Phụ kiện</a>
-                    <a href="#">Phần mềm</a>
-                    </div>
-                </div>
-              </div>
-            <div class="navbar-right">
-              <a href="" class="nav-item">
-              <i class="fa-solid fa-newspaper"></i> Thủ thuật & Tin Tức
-              </a>
-              <a href="#" class="nav-item">
-              <i class="fa-solid fa-circle-dollar-to-slot"></i> Hướng dẫn mua hàng
-              </a>
-              <a href="#" class="nav-item">
-              <i class="fa-solid fa-hand-holding-hand"></i> Liên hệ hợp tác
-              </a>
-            </div>
-          </div>
-          </nav>
-        </header>
-      )}
+    // Box giỏ hàng
+    React.createElement(
+      'div',
+      {
+        style: { zIndex: '2001' },
+        className: 'offcanvas offcanvas-end',
+        'data-bs-scroll': 'true',
+        tabIndex: '-1',
+        id: 'offcanvasWithBothOptions',
+        'aria-labelledby': 'offcanvasWithBothOptionsLabel',
+      },
+      React.createElement(
+        'div',
+        { className: 'offcanvas-header' },
+        React.createElement(
+          'h5',
+          { style: { fontWeight: '700' }, className: 'offcanvas-title', id: 'offcanvasWithBothOptionsLabel' },
+          'Giỏ hàng'
+        ),
+        React.createElement('button', {
+          type: 'button',
+          className: 'btn-close',
+          'data-bs-dismiss': 'offcanvas',
+          'aria-label': 'Close',
+        })
+      ),
+      React.createElement(
+        'div',
+        { className: 'offcanvas-body' },
+        React.createElement(
+          'li',
+          { style: { listStyle: 'none' } },
+          React.createElement(
+            Link,
+            { to: '/showcart' },
+            React.createElement(
+              'button',
+              { className: 'btn btn-outline-info', 'data-bs-dismiss': 'offcanvas' },
+              'Xem giỏ hàng'
+            )
+          )
+        )
+      )
+    ),
 
-      {/* Box tìm kiếm */}
-      <div style={{ marginTop: '5%', width: '50%', marginLeft: '25%' }} className="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabIndex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-        <ThanhTimKiem />
-      </div>
+    React.createElement(
+      'main',
+      null,
+      React.createElement(
+        Routes,
+        null,
+        React.createElement(Route, { path: '/auth', element: React.createElement(Auth, null) }),
+        React.createElement(Route, { path: '/forgot-password', element: React.createElement(ForgotPassword, null) }),
+        React.createElement(Route, {
+          path: '/gioithieu',
+          element: daDangNhap ? React.createElement(GioiThieu, null) : React.createElement(Navigate, { to: '/auth' }),
+        }),
+        React.createElement(Route, { path: '/sanpham/:id/:id_loai', element: React.createElement(ProductDetail, null) }),
+        React.createElement(Route, { path: '/loai/:id', element: React.createElement(ShowProductOneKind, null) }),
+        React.createElement(Route, { path: '/profile/:userId', element: React.createElement(Profile, null) }),
+        React.createElement(Route, { path: '/', element: React.createElement(PageHome, null) }),
+        React.createElement(Route, { path: '*', element: React.createElement(NotFound, null) }),
+        React.createElement(Route, { path: '/hien-thi-san-pham', element: React.createElement(HienSPTrongMotTrang, null) }),
+        React.createElement(Route, { path: '/so-sanh', element: React.createElement(SoSanh, null) }),
+        React.createElement(
+          Route,
+          { element: React.createElement(ProtectedRoute, null) },
+          React.createElement(Route, { path: '/showcart', element: React.createElement(ShowCart, null) }),
+          React.createElement(Route, { path: '/thanhtoan/', element: React.createElement(ThanhToan, null) }),
+          React.createElement(Route, { path: '/thanks', element: React.createElement(CamOn, null) }),
+          React.createElement(Route, { path: '/admin', element: React.createElement(Admin, null) }),
+          React.createElement(Route, { path: '/admin/product', element: React.createElement(AdminProduct, null) }),
+          React.createElement(Route, { path: '/admin/user', element: React.createElement(AdminUser, null) }),
+          React.createElement(Route, { path: '/admin/order', element: React.createElement(AdminOrder, null) }),
+          React.createElement(Route, { path: '/admin/category', element: React.createElement(AdminCategory, null) }),
+          React.createElement(Route, { path: '/doimatkhau', element: React.createElement(UppdatePassWord, null) })
+        )
+      )
+    ),
 
-      {/* Box giỏ hàng */}
-      <div style={{ zIndex: '2001' }} className="offcanvas offcanvas-end" data-bs-scroll="true" tabIndex="-1" id="offcanvasWithBothOptions" aria-labelledby="offcanvasWithBothOptionsLabel">
-        <div className="offcanvas-header">
-          <h5 style={{ fontWeight: "700" }} className="offcanvas-title" id="offcanvasWithBothOptionsLabel">Giỏ hàng</h5>
-          <button type="button" className="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-        </div>
-        <div className="offcanvas-body">
-          <li style={{ listStyle: 'none' }}>
-            <Link to="/showcart"><button className="btn btn-outline-info" data-bs-dismiss="offcanvas">Xem giỏ hàng</button></Link>
-          </li>
-        </div>
-      </div>
-
-      <main>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/logout" element={<Logout />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} /> {/* Route trang quên mật khẩu */}
-          <Route path="/gioithieu" element={daDangNhap ? <GioiThieu /> : <Navigate to="/login" />} />
-          <Route path="/sanpham/:id/:id_loai" element={<ProductDetail />} />
-          <Route path="/loai/:id" element={<ShowProductOneKind />} />
-          <Route path="/profile/:userId" element={<Profile />} />
-          <Route path="/" element={<PageHome />} />
-          <Route path="*" element={<NotFound />} />
-          <Route path="/hien-thi-san-pham" element={<HienSPTrongMotTrang />} />
-          <Route path="/so-sanh" element={<SoSanh />} />
-          <Route path="/laptop" element={<Laptop/>} />
-          <Route element={<ProtectedRoute />}>
-            <Route path="/showcart" element={<ShowCart />} />
-            <Route path="/thanhtoan/" element={<ThanhToan />} />
-            <Route path="/thanks" element={<CamOn />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="/admin/product" element={<AdminProduct />} />
-            <Route path="/admin/user" element={<AdminUser />} />
-            <Route path="/admin/order" element={<AdminOrder />} />
-            <Route path="/admin/category" element={<AdminCategory />} />
-            <Route path="/doimatkhau" element={<UppdatePassWord />} />
-          </Route>
-        </Routes>
-      </main>
-
-      {showHeaderFooter && (
-        <footer className="footer">
-          <Footer />
-        </footer>
-      )}
-    </div>
+    showHeaderFooter && React.createElement(
+      'footer',
+      { className: 'footer' },
+      React.createElement(Footer, null)
+    )
   );
 }
 

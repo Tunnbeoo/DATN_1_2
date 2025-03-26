@@ -66,7 +66,7 @@ function AdminCategorySua({ setRefresh, category }) {
                     <div className="modal-footer">
                         <button type="button" style={{backgroundColor: '#6c757d'}} className="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
                         <button type="button" style={{backgroundColor: '#0d6efd'}} className="btn btn-primary" onClick={(e) => submitDuLieu(e)}>Xác nhận</button>
-                    </div>
+                        </div>
                 </div>
             </div>
         </div>

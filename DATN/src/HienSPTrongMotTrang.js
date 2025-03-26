@@ -1,3 +1,5 @@
+import React from 'react';
+import './boxPro.css';
 import { Link } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { themSP } from "./cartSlice";
