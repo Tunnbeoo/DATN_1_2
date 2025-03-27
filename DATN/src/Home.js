@@ -1,11 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import './boxPro.css';
 import './App.css';
 import banner_n1 from './img/banner_n1.webp';
 import banner5 from './img/banner5.jpg';
 import { Link, useNavigate } from "react-router-dom";
-import { themVaoSoSanh } from './compareSlice';
-import { useState, useEffect } from 'react';
+import { themVaoSoSanh, xoaKhoiSoSanh } from './compareSlice'; // Thêm xoaKhoiSoSanh nếu có
 import { useDispatch, useSelector } from 'react-redux';
 import { themSP } from './cartSlice';
 import './home_sosanh.css';
@@ -16,9 +15,9 @@ function Home() {
     const navigate = useNavigate();
     const daDangNhap = useSelector(state => state.auth.daDangNhap);
     const [listsp, ganListSP] = useState([]);
-    const danhSachSoSanh = useSelector(state => state.compare.danhSachSoSanh);
-    const [comparisonList, setComparisonList] = useState([]);
+    const danhSachSoSanh = useSelector(state => state.compare.danhSachSoSanh); // Lấy từ Redux
     const [isCompareBoxVisible, setIsCompareBoxVisible] = useState(false);
+    const [thongBao, setThongBao] = useState(false);
 
     useEffect(() => {
         fetch("http://localhost:3000/spmoi/1")
@@ -49,8 +48,6 @@ function Home() {
         ganListSP(sx);
     };
 
-    const [thongBao, setThongBao] = useState(false);
-
     const xuli = (sanpham) => {
         if (!daDangNhap) {
             if (window.confirm("Đăng nhập để thêm sản phẩm vào giỏ hàng!")) {
@@ -66,12 +63,12 @@ function Home() {
     };
 
     const themSoSanhVaChuyenTrang = (sanpham) => {
-        if (comparisonList.length >= 3) {
+        if (danhSachSoSanh.length >= 3) {
             alert("Bạn chỉ có thể so sánh tối đa 3 sản phẩm!");
             return;
         }
         console.log("🔍 Sản phẩm thêm vào so sánh:", sanpham);
-        addProductToCompare(sanpham);
+        dispatch(themVaoSoSanh(sanpham)); // Dispatch action để thêm vào Redux
         setThongBao(true);
         setTimeout(() => {
             setThongBao(false);
@@ -79,18 +76,9 @@ function Home() {
         }, 1000);
     };
 
-    const addProductToCompare = (product) => {
-        if (comparisonList.length < 3) {
-            setComparisonList([...comparisonList, product]);
-        }
-    };
-
-    const removeProductFromCompare = (productId) => {
-        setComparisonList(comparisonList.filter(product => product.id !== productId));
-    };
-
     const clearCompare = () => {
-        setComparisonList([]);
+        // Xóa tất cả sản phẩm khỏi Redux (giả sử có action xoaKhoiSoSanh)
+        danhSachSoSanh.forEach(sp => dispatch(xoaKhoiSoSanh(sp.id)));
         setIsCompareBoxVisible(false);
         localStorage.setItem('isCompareBoxVisible', 'false');
     };
@@ -116,16 +104,11 @@ function Home() {
         <div>
             {thongBao && (
                 <div className="thongbao">
-                    Sản phẩm đã được thêm!
+                    Sản phẩm đã được thêm vào so sánh!
                 </div>
             )}
             <div className="troVe"><a href="#header" onClick={handleScrollToTop}><i className="bi bi-arrow-up-short"></i></a></div>
             <div id="carouselExampleIndicators" className="carousel slide_con">
-                {/* <div className="carousel-indicators">
-                    <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="0" className="active" aria-current="true" aria-label="Slide 1"></button>
-                    <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="1" aria-label="Slide 2"></button>
-                    <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="2" aria-label="Slide 3"></button>
-                </div> */}
                 <button className="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
                     <span className="carousel-control-prev-icon" aria-hidden="true"></span>
                     <span className="visually-hidden">Previous</span>
@@ -154,39 +137,31 @@ function Home() {
             <div className="tong_box_SP">
                 {listsp.map((sp, i) => (
                     <div className="box_SP" key={i}>
-                        {/* Nhãn giảm giá */}
                         {sp.phan_tram_gg && (
                             <div className="box_SP_khuyen_mai">
                                 Giảm {sp.phan_tram_gg}%
                             </div>
                         )}
-                        {/* Hình ảnh sản phẩm */}
                         <div className="box_SP_anh">
                             <Link to={`/sanpham/${sp.id}/${sp.id_loai}`}>
                                 <img src={sp.hinh} title={sp.ten_sp.toUpperCase()} alt={sp.ten_sp} />
                             </Link>
                         </div>
-                        {/* Icon giỏ hàng */}
                         <div className="cart_icon" onClick={() => xuli(sp)}>
                             <i className="bi bi-bag-plus-fill"></i>
                         </div>
-                        {/* Tên sản phẩm */}
                         <div className="box_SP_tensp">
                             <Link to={`/sanpham/${sp.id}/${sp.id_loai}`}>{sp.ten_sp}</Link>
                         </div>
-                        {/* Thông số RAM và SSD */}
                         <div className="box_SP_RAM_SSD">
                             <div><button className="box_SP_RAM">RAM: {sp.ram}</button></div>
                             <div><button className="box_SP_SSD">SSD: {sp.dia_cung}</button></div>
                         </div>
-                        {/* Giá sản phẩm */}
                         <div className="box_SP_gia">
                             <div className="box_SP_gia_km">{parseFloat(sp.gia_km).toLocaleString("vi")} VNĐ</div>
                             <div className="box_SP_gia_goc"><del>{parseFloat(sp.gia).toLocaleString("vi")} VNĐ</del></div>
                         </div>
-                        {/* Lượt xem */}
                         <div className="box_SP_luot_xem"><p>Lượt xem: {sp.luot_xem}</p></div>
-                        {/* Đánh giá và nút so sánh */}
                         <div className="box_SP_icon">
                             <div className="box_SP_icon_star">
                                 <div className="box_SP_icon_star_dam"><i className="bi bi-star-fill"></i></div>
@@ -222,9 +197,9 @@ function Home() {
                         <i className="bi bi-x"></i>Thu gọn
                     </a>
                     <ul className="listcompare">
-                        {comparisonList.map(sp => (
+                        {danhSachSoSanh.map(sp => (
                             <li key={sp.id}>
-                                <span className="remove-ic-compare" onClick={() => removeProductFromCompare(sp.id)}>
+                                <span className="remove-ic-compare" onClick={() => dispatch(xoaKhoiSoSanh(sp.id))}>
                                     <i className="bi bi-x"></i>
                                 </span>
                                 <img src={sp.hinh} alt={sp.ten_sp} />
@@ -236,7 +211,7 @@ function Home() {
                                 </div>
                             </li>
                         ))}
-                        {comparisonList.length < 3 && (
+                        {danhSachSoSanh.length < 3 && (
                             <li className="formsg">
                                 <div className="cp-plus cp-plus_new">
                                     <i className="bi bi-plus-lg"></i>
