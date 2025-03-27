@@ -1,76 +1,146 @@
 import { useSelector, useDispatch } from "react-redux";
 import { xoaKhoiSoSanh } from "./compareSlice";
 import { Link } from "react-router-dom";
-import './main.css';
-import './home_sosanh.css';
+import { useState } from "react";
+import './sosanh.css';
 
 function SoSanh() {
-    const state = useSelector((state) => state);
-    console.log("🔍 Redux State:", useSelector(state => state));
     const dispatch = useDispatch();
-    // Cách an toàn để lấy danhSachSoSanh mà không bị lỗi
     const danhSachSoSanh = useSelector((state) => state.compare?.danhSachSoSanh || []);
-    
-    console.log("✅ Danh sách so sánh:", danhSachSoSanh);
+    const [showDifferencesOnly, setShowDifferencesOnly] = useState(false);
 
-    function CompareValue() {
-        console.log('CompareValue function called');
-    }
+    // Danh sách các thông số cần so sánh
+    const specsToCompare = [
+        { label: "Tên sản phẩm", key: "ten_sp" },
+        { label: "Giá gốc", key: "gia" },
+        { label: "Giá khuyến mãi", key: "gia_km" },
+        { label: "RAM", key: "ram" },
+        { label: "Ổ cứng", key: "dia_cung" },
+        { label: "CPU", key: "cpu" },
+        { label: "Card đồ họa", key: "card" },
+        { label: "Màn hình", key: "man_hinh" },
+        { label: "Pin", key: "pin" },
+        { label: "Cân nặng", key: "can_nang" },
+        { label: "Kích thước", key: "kich_thuoc" },
+        { label: "Xuất xứ", key: "xuat_xu" },
+        { label: "Năm ra mắt", key: "nam_ra_mat" }
+    ];
+
+    // Hàm kiểm tra xem thông số có khác biệt giữa các sản phẩm không
+    const isSpecDifferent = (key) => {
+        if (danhSachSoSanh.length < 2) return false;
+        const values = danhSachSoSanh.map(sp => sp[key]?.toString() || "Không có thông tin");
+        return !values.every((val, _, arr) => val === arr[0]);
+    };
+
+    // Hàm xử lý khi người dùng bật/tắt "Chỉ xem điểm khác biệt"
+    const toggleDifferences = () => {
+        setShowDifferencesOnly(!showDifferencesOnly);
+    };
+
+    // Hàm format giá tiền
+    const formatPrice = (price) => {
+        return price ? parseFloat(price).toLocaleString("vi-VN") + "₫" : "Không có thông tin";
+    };
+
+    // Hàm render sao đánh giá
+    const renderStars = (rating = 5) => {
+        return (
+            <div className="vote-txt">
+                {[...Array(5)].map((_, index) => (
+                    <i key={index} className={`bi ${index < rating ? 'bi-star-fill' : 'bi-star'}`}></i>
+                ))}
+                <span>({rating} đánh giá)</span>
+            </div>
+        );
+    };
 
     return (
-        <ul className="compare-list compare-main">
-            <li>
-                <p className="compare-title">So sánh sản phẩm</p>
-                <div className="compare-products">
-                    {danhSachSoSanh.map((sp) => (
-                        <p className="compare-product-name" data-id={sp.id} key={sp.id}>{sp.ten_sp}</p>
-                    ))}
+        <div className="pro-compare_main">
+            <h1 className="title-cp">So sánh sản phẩm</h1>
+
+            {/* Thanh điều khiển */}
+            <div className="box-detailcp">
+                <div className="stick-df" onClick={toggleDifferences}>
+                    <i className={`icon-tickbox bi ${showDifferencesOnly ? 'bi-check-square-fill' : 'bi-square'}`}></i>
+                    <span>Chỉ xem điểm khác biệt</span>
                 </div>
-                <div className="compare-detail checkdiff">
-                    <div className="compare-diff" onClick={() => CompareValue()}>
-                        <i className="icon-tickbox"></i>
-                        <span>Chỉ xem điểm khác biệt</span>
+            </div>
+
+            {/* Bảng so sánh */}
+            <div className="compare-wrapper">
+                <div className="compare-table">
+                    {/* Hàng tiêu đề (sản phẩm) */}
+                    <div className="compare-row compare-header">
+                        <div className="compare-col compare-label"></div>
+                        {danhSachSoSanh.map((sp) => (
+                            <div key={sp.id} className="compare-col">
+                                <div className="productitem-cp">
+                                    <div className="deleteProduct" onClick={() => dispatch(xoaKhoiSoSanh(sp.id))}>
+                                        <i className="bi bi-x"></i>
+                                    </div>
+                                    <Link to={`/dtdd/${sp.ten_sp.replace(/\s+/g, '-').toLowerCase()}`}>
+                                        <div className="item-img">
+                                            <img className="thumb" src={sp.hinh} alt={sp.ten_sp} />
+                                        </div>
+                                        <h3 className="productname-cp">{sp.ten_sp}</h3>
+                                        <div className="price">{formatPrice(sp.gia_km)}</div>
+                                        <div className="rating_Compare">
+                                            {renderStars(5)}
+                                        </div>
+                                    </Link>
+                                </div>
+                            </div>
+                        ))}
+                        {danhSachSoSanh.length < 4 && (
+                            <div className="compare-col">
+                                <Link to="/" className="add-product">
+                                    <i className="bi bi-plus-circle"></i>
+                                    <span>Thêm sản phẩm</span>
+                                </Link>
+                            </div>
+                        )}
                     </div>
+
+                    {/* Các hàng thông số */}
+                    {specsToCompare.map((spec) => {
+                        if (showDifferencesOnly && !isSpecDifferent(spec.key)) {
+                            return null;
+                        }
+
+                        return (
+                            <div key={spec.key} className="compare-row" data-spec={spec.key}>
+                                <div className="compare-label">{spec.label}</div>
+                                {danhSachSoSanh.map((sp) => (
+                                    <div 
+                                        key={sp.id} 
+                                        className={`compare-col ${isSpecDifferent(spec.key) ? 'different' : ''}`}
+                                    >
+                                        <span data-price={spec.key.includes('gia')}>
+                                            {spec.key.includes('gia') 
+                                                ? formatPrice(sp[spec.key])
+                                                : sp[spec.key] || "Không có thông tin"}
+                                        </span>
+                                    </div>
+                                ))}
+                                {danhSachSoSanh.length < 4 && <div className="compare-col"></div>}
+                            </div>
+                        );
+                    })}
                 </div>
-            </li>
-            {danhSachSoSanh.map((sp) => (
-                <li key={sp.id} data-id={sp.id} className={`compare-item productid-${sp.id} cate-42`} data-url={`/dtdd/${sp.ten_sp.replace(/\s+/g, '-').toLowerCase()}`}>
-                    <div className="compare-delete-icon" onClick={() => dispatch(xoaKhoiSoSanh(sp.id))}>
-                        <i className="bi bi-x-lg"></i>
-                    </div>
-                    <a href={`/dtdd/${sp.ten_sp.replace(/\s+/g, '-').toLowerCase()}`} className="compare-content">
-                        <div className="compare-label">
-                            <span className="compare-new">Mẫu mới</span>
-                            <span className="compare-installment">Trả chậm 0%</span>
-                        </div>
-                        <div className="compare-img">
-                            <img className="compare-thumb" src={sp.hinh} alt={sp.ten_sp} />
-                        </div>
-                        <p className="compare-result"><img width="20" height="20" alt="label template" src="https://cdn.tgdd.vn/2020/10/content/icon5-50x50.png" /><span>Trả trước 0đ</span></p>
-                        <h3>
-                            {sp.ten_sp}
-                            <span className="compare-new-model">Mẫu mới</span>
-                        </h3>
-                        <div className="compare-specs">
-                            <span>{sp.ram}</span>
-                            <span>{sp.dia_cung}</span>
-                        </div>
-                        <strong className="compare-price">{parseFloat(sp.gia_km).toLocaleString("vi")}₫</strong>
-                    </a>
-                    <div className="compare-bottom">
-                        <a href="javascript:;" className="compare-shipping" aria-label="shipping"></a>
-                    </div>
-                    <div className="compare-rating">
-                        <div className="compare-vote">
-                            {[...Array(5)].map((_, index) => (
-                                <i key={index} className={`bi ${index < 5 ? 'bi-star-fill' : 'bi-star'}`}></i>
-                            ))}
-                            <b>5</b>
-                        </div>
-                    </div>
-                </li>
-            ))}
-        </ul>
+            </div>
+
+            {/* Khi không có sản phẩm */}
+            {danhSachSoSanh.length === 0 && (
+                <div className="no-products">
+                    <p>Chưa có sản phẩm nào để so sánh</p>
+                    <Link to="/" className="add-product">
+                        <i className="bi bi-plus-circle"></i>
+                        <span>Thêm sản phẩm để so sánh</span>
+                    </Link>
+                </div>
+            )}
+        </div>
     );
 }
 

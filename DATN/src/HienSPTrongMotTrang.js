@@ -6,6 +6,7 @@ import { themSP } from "./cartSlice";
 import { themVaoSoSanh } from "./compareSlice"; // Import action so sánh
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 function HienSPTrongMotTrang({ spTrongTrang }) {
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -32,49 +33,49 @@ function HienSPTrongMotTrang({ spTrongTrang }) {
     };
 
     return (
-        <div className="tong_box_SPL">
-        {thongBao && (
-                    <div className="thongbao" >
-                        Đã thêm vào so sánh
-                    </div>
-                )}
+        <div className="list_tong_box_SP">
+            {thongBao && (
+                <div className="thongbao">
+                    Đã thêm vào so sánh
+                </div>
+            )}
             {spTrongTrang.map((sp, i) => (
-                <div className="box_SPL" key={i}>
-                <div className="box_SPL_anh">
-                     <img src={sp.hinh} title={(sp.ten_sp).toLocaleUpperCase()} alt={sp.ten_sp} />
-                </div>
-                <div className="box_SPL_tensp"><Link to= {`/sanpham/${sp.id}/${sp.id_loai}`} routerLinkActive="a">{sp.ten_sp}</Link></div>
-                <div className='add_SP' onClick={() => xuli(sp)}><i class="bi bi-bag-plus-fill"></i></div>
-                <div className="box_SPL_RAM_SSD">
-                    <div><button className="box_SPL_RAM" >RAM: {sp.ram}</button></div>
-                    <div><button className="box_SPL_SSD" >SSD: {sp.dia_cung}</button></div>
-                </div>
-                <div className="box_SPL_gia">
-                    <div className="box_SPL_gia_km">{parseFloat(sp.gia_km).toLocaleString("vi")}VNĐ</div>
-                    <div className="box_SPL_gia_goc"><del>{parseFloat(sp.gia).toLocaleString("vi")}VNĐ</del></div>
-                </div>
-                <div className="box_SPL_luot_xem"><p>Lượt xem: {sp.luot_xem}</p></div>
-                <div className="box_SPL_icon">
-                    <div className="box_SPL_icon_star">
-                        <div className="box_SPL_icon_star_dam"><i className="bi bi-star-fill"></i></div>
-                        <div className="box_SPL_icon_star_dam"><i className="bi bi-star-fill"></i></div>
-                        <div className="box_SPL_icon_star_dam"><i className="bi bi-star-fill"></i></div>
-                        <div className="box_SPL_icon_star_dam"><i className="bi bi-star-fill"></i></div>
-                        <div className="box_SPL_icon_star_nhat"><i className="bi bi-star-fill"></i></div>
-                        <div className="box_SPL_icon_star_dg"><p>(Đánh giá)</p></div>
-                
+                <div className="list_box_SP" key={i}>
+                    <div className="list_box_SP_anh">
+                        <img src={sp.hinh} title={(sp.ten_sp).toLocaleUpperCase()} alt={sp.ten_sp} />
                     </div>
-                    <div className="so_sanh">
-                        <button className="so_sanh_btn" onClick={() => themSoSanhVaChuyenTrang(sp)}>
-                            So sánh
-                        </button>
+                    <div className="list_box_SP_tensp">
+                        <Link to={`/sanpham/${sp.id}/${sp.id_loai}`}>{sp.ten_sp}</Link>
+                    </div>
+                    <div className='list_cart_icon' onClick={() => xuli(sp)}>
+                        <i className="bi bi-bag-plus-fill"></i>
+                    </div>
+                    <div className="list_box_SP_RAM_SSD">
+                        <div><button className="list_box_SP_RAM">RAM: {sp.ram}</button></div>
+                        <div><button className="list_box_SP_SSD">SSD: {sp.dia_cung}</button></div>
+                    </div>
+                    <div className="list_box_SP_gia">
+                        <div className="list_box_SP_gia_km">{parseFloat(sp.gia_km).toLocaleString("vi")} VNĐ</div>
+                        <div className="list_box_SP_gia_goc"><del>{parseFloat(sp.gia).toLocaleString("vi")} VNĐ</del></div>
+                    </div>
+                    <div className="list_box_SP_luot_xem"><p>Lượt xem: {sp.luot_xem}</p></div>
+                    <div className="list_box_SP_icon">
+                        <div className="list_box_SP_icon_star">
+                            <div className="list_box_SP_icon_star_dam"><i className="bi bi-star-fill"></i></div>
+                            <div className="list_box_SP_icon_star_dam"><i className="bi bi-star-fill"></i></div>
+                            <div className="list_box_SP_icon_star_dam"><i className="bi bi-star-fill"></i></div>
+                            <div className="list_box_SP_icon_star_dam"><i className="bi bi-star-fill"></i></div>
+                            <div className="list_box_SP_icon_star_nhat"><i className="bi bi-star-fill"></i></div>
+                            <div className="list_box_SP_icon_star_dg"><p>(Đánh giá)</p></div>
+                        </div>
+                        <div className="list_so_sanh">
+                            <button className="list_so_sanh_btn" onClick={() => themSoSanhVaChuyenTrang(sp)}>
+                                So sánh
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
-        
-                
             ))}
-            
         </div>
     );
 }
