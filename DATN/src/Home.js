@@ -124,7 +124,7 @@ function Home() {
                     <hr className="h_r"></hr>
                 </div>
                 <div className="box_chucnang_loc_home">
-                    <label style={{ marginRight: '5px', padding: '5px', fontWeight: '700', fontSize: '15px' }}>LỌC: </label>
+                    <label style={{ marginRight: '5px', padding: '5px', fontWeight: '700', fontSize: '15px' }}>Sắp xếp: </label>
                     <select style={{ width: '220px', padding: '3px', borderRadius: '2px', border: '1px solid gray', fontSize: '15px' }}
                         onChange={(e) => { if (e.target.value === '2') { sapXepGiaTang(); } else if (e.target.value === '3') { sapXepGiaGiam(); } }}>
                         <option value={1}>Các chức năng:</option>

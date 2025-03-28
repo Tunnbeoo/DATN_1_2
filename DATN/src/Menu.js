@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux';
 import { thoat } from './authSlice';
@@ -9,6 +9,24 @@ function Menu() {
   const user = useSelector(state => state.auth.user);
   const daDangNhap = useSelector(state => state.auth.daDangNhap);
   const dispatch = useDispatch();
+  
+  // Thêm state cho tìm kiếm
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  // Xử lý khi người dùng nhập từ khóa
+  const handleSearchChange = (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    setShowSuggestions(query.length > 0); // Hiển thị gợi ý nếu có từ khóa
+  };
+
+  // Xử lý khi nhấn nút tìm kiếm
+  const handleSearchSubmit = () => {
+    console.log('Tìm kiếm:', searchQuery);
+    // Có thể thêm logic chuyển hướng hoặc gọi API tìm kiếm
+    // Ví dụ: window.location.href = `/search?q=${searchQuery}`;
+  };
 
   const Logout = () => {
     if (window.confirm('Bạn muốn đăng xuất?')) {
@@ -19,6 +37,7 @@ function Menu() {
   return React.createElement(
     'div',
     { className: 'menu' },
+    // Logo (giữ nguyên)
     React.createElement(
       'div',
       { className: 'box_menu' },
@@ -34,6 +53,7 @@ function Menu() {
       )
     ),
 
+    // Menu điều hướng (giữ nguyên)
     React.createElement(
       'nav',
       { className: 'main-menu' },
@@ -47,33 +67,51 @@ function Menu() {
           React.createElement(
             'ul',
             { className: 'dropdown' },
-            React.createElement('li', null, React.createElement(NavLink, { to: '/san-pham/laptop' }, 'Laptop')),
+            React.createElement('li', null, React.createElement(NavLink, { to: '/laptop' }, 'Laptop')),
             React.createElement('li', null, React.createElement(NavLink, { to: '/san-pham/pc' }, 'PC')),
             React.createElement('li', null, React.createElement(NavLink, { to: '/san-pham/phu-kien' }, 'Phụ kiện'))
           )
         ),
-        React.createElement('li', null, React.createElement(NavLink, { to: '/khuyen-mai', activeClassName: 'active' }, 'Khuyến mãi')),
+        React.createElement('li', null, React.createElement(NavLink, { to: '/ khuyen-mai', activeClassName: 'active' }, 'Khuyến mãi')),
         React.createElement('li', null, React.createElement(NavLink, { to: '/tin-tuc', activeClassName: 'active' }, 'Tin tức')),
         React.createElement('li', null, React.createElement(NavLink, { to: '/lien-he', activeClassName: 'active' }, 'Liên hệ'))
       )
     ),
 
+    // Thanh tìm kiếm mới
     React.createElement(
-      'button',
-      {
-        type: 'button',
-        className: 'btn search',
-        'data-bs-toggle': 'modal',
-        'data-bs-target': '#staticBackdrop',
-        style: { border: 'none' },
-      },
-      React.createElement('input', { type: 'text', placeholder: 'Tìm kiếm sản phẩm' }),
-      React.createElement('i', {
-        style: { fontSize: '22px', color: 'white', background: '#fdb813', width: '50px', height: '50px', borderRadius: '5px', padding: '10px' },
-        className: 'bi bi-search',
-      })
+      'div',
+      { className: 'search-container' },
+      React.createElement(
+        'input',
+        {
+          type: 'text',
+          placeholder: 'Tìm kiếm sản phẩm',
+          value: searchQuery,
+          onChange: handleSearchChange,
+          className: 'search-input',
+        }
+      ),
+      React.createElement(
+        'button',
+        {
+          type: 'button',
+          className: 'search-button',
+          onClick: handleSearchSubmit,
+        },
+        React.createElement('i', { className: 'bi bi-search' })
+      ),
+      showSuggestions && React.createElement(
+        'div',
+        { className: 'search-suggestions' },
+        // Gợi ý tĩnh, có thể thay bằng dữ liệu động
+        React.createElement('div', null, 'Laptop'),
+        React.createElement('div', null, 'PC'),
+        React.createElement('div', null, 'Phụ kiện')
+      )
     ),
 
+    // Menu người dùng và giỏ hàng (giữ nguyên)
     React.createElement(
       'div',
       { className: 'user-menu' },
@@ -92,7 +130,7 @@ function Menu() {
                   { className: 'user-actions' },
                   React.createElement(
                     NavLink,
-                    { to: '/auth' }, // Sửa từ /login thành /auth
+                    { to: '/auth' },
                     React.createElement('i', { className: 'bi bi-person-circle' }),
                     ' Đăng nhập / Đăng ký'
                   )
@@ -107,7 +145,7 @@ function Menu() {
                     React.Fragment,
                     null,
                     React.createElement('li', null, React.createElement(NavLink, { to: '/#', className: 'menu-link' }, 'Thông tin cá nhân')),
-                    React.createElement('li', null, React.createElement(NavLink, { to: '/auth', className: 'menu-link' }, 'Đăng nhập')) // Sửa từ /login thành /auth
+                    React.createElement('li', null, React.createElement(NavLink, { to: '/auth', className: 'menu-link' }, 'Đăng nhập'))
                   )
                 : React.createElement(
                     React.Fragment,
@@ -155,13 +193,7 @@ function Menu() {
                   React.createElement(
                     'style',
                     null,
-                    `.cls-1 {
-                      fill: none;
-                      stroke: #fff;
-                      stroke-linecap: round;
-                      stroke-linejoin: round;
-                      stroke-width: 1.8px;
-                    }`
+                    `.cls-1 { fill: none; stroke: #fff; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8px; }`
                   )
                 ),
                 React.createElement(

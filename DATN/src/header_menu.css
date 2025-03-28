@@ -353,3 +353,81 @@
         color: #149b9b;
     }
 }
+
+/* Search container styles */
+.search-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin: 0 20px;
+    flex-grow: 1; /* Để thanh tìm kiếm mở rộng giữa header */
+}
+
+.search-input {
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    width: 100%;
+    max-width: 400px; /* Giới hạn chiều rộng tối đa */
+    font-size: 14px;
+    background: white;
+    color: #333;
+}
+
+.search-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin-left: 5px;
+}
+
+.search-button i {
+    font-size: 18px;
+    color: white;
+    transition: color 0.3s ease;
+}
+
+.search-button:hover i {
+    color: #fdb813; /* Màu vàng giống thegioididong.com */
+}
+
+/* Dropdown suggestions styles */
+.search-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: white;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    border-radius: 5px;
+    z-index: 1000;
+    width: 100%;
+    max-width: 400px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+}
+
+.search-suggestions div {
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #333;
+}
+
+.search-suggestions div:hover {
+    background: #f5f5f5;
+    color: #fdb813;
+}
+
+@media only screen and (max-width: 480px) {
+    .search-container {
+        margin: 10px 0;
+        width: 100%;
+    }
+    .search-input {
+        max-width: 100%;
+    }
+    .search-suggestions {
+        max-width: 100%;
+    }
+}

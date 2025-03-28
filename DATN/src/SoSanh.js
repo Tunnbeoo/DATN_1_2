@@ -2,7 +2,8 @@ import { useSelector, useDispatch } from "react-redux";
 import { xoaKhoiSoSanh } from "./compareSlice";
 import { Link } from "react-router-dom";
 import { useState } from "react";
-import './sosanh.css';
+import './main.css';
+import './home_sosanh.css';
 
 function SoSanh() {
     const dispatch = useDispatch();
@@ -12,7 +13,7 @@ function SoSanh() {
     // Danh sách các thông số cần so sánh
     const specsToCompare = [
         { label: "Tên sản phẩm", key: "ten_sp" },
-        { label: "Giá gốc", key: "gia" },
+        { label: "Giá", key: "gia" },
         { label: "Giá khuyến mãi", key: "gia_km" },
         { label: "RAM", key: "ram" },
         { label: "Ổ cứng", key: "dia_cung" },

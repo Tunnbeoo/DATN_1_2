@@ -9,55 +9,133 @@ function Auth() {
   const emailRef = useRef();
   const passwordRef = useRef();
   const confirmPasswordRef = useRef();
+  const nameRef = useRef();
   const dispatch = useDispatch();
-  const [isLoginMode, setIsLoginMode] = useState(true); // Chuyển đổi giữa Login và Register
+  const [isLoginMode, setIsLoginMode] = useState(true);
   const [staySignedIn, setStaySignedIn] = useState(false);
+  const [error, setError] = useState('');
 
   document.title = isLoginMode ? "Đăng nhập - LaptopCenter" : "Đăng ký - LaptopCenter";
 
-  const submitDuLieu = (e) => {
+  const submitDuLieu = async (e) => {
     e.preventDefault();
+    setError('');
 
+    // Validate input
     if (!emailRef.current.value || !passwordRef.current.value) {
-      alert("Vui lòng nhập đầy đủ email và mật khẩu");
+      setError("Vui lòng nhập đầy đủ email và mật khẩu");
       return;
     }
 
     if (!isLoginMode && passwordRef.current.value !== confirmPasswordRef.current.value) {
-      alert("Mật khẩu xác nhận không khớp!");
+      setError("Mật khẩu xác nhận không khớp!");
       return;
     }
 
-    const url = isLoginMode ? "http://localhost:3000/login" : "http://localhost:3000/register";
-    let tt = { 
-      email: emailRef.current.value, 
-      password: passwordRef.current.value 
-    };
-    const opt = {
-      method: "POST",
-      body: JSON.stringify(tt),
-      headers: { 'Content-Type': 'application/json' },
-    };
+    if (!isLoginMode && passwordRef.current.value.length < 6) {
+      setError("Mật khẩu phải có ít nhất 6 ký tự!");
+      return;
+    }
 
-    fetch(url, opt)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.thongbao) {
-          alert(data.thongbao);
-        }
-        if (isLoginMode && data.token && data.userInfo) {
-          dispatch(dalogin(data));
-          localStorage.setItem("userId", data.userInfo.id);
-          const from = location.state?.from?.pathname || '/';
-          navigate(from);
-        } else if (!isLoginMode && data.success) {
-          alert("Đăng ký thành công!");
-          setIsLoginMode(true); // Chuyển về chế độ đăng nhập sau khi đăng ký thành công
-        }
-      })
-      .catch((error) => {
-        alert("Đã xảy ra lỗi, vui lòng thử lại sau");
+    try {
+      // Sửa URL API để khớp với server
+      const url = isLoginMode 
+        ? "http://localhost:3000/login" 
+        : "http://localhost:3000/dangky";
+      
+      const data = { 
+        email: emailRef.current.value, 
+        password: passwordRef.current.value,
+        name: !isLoginMode ? nameRef.current.value : undefined
+      };
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(data)
       });
+
+      // Kiểm tra response status
+      if (!response.ok) {
+        const errorText = await response.text();
+        try {
+          const errorJson = JSON.parse(errorText);
+          throw new Error(errorJson.thongbao || 'Có lỗi xảy ra');
+        } catch (e) {
+          throw new Error(errorText || 'Có lỗi xảy ra');
+        }
+      }
+
+      // Thử parse response text thành JSON
+      const responseText = await response.text();
+      let result;
+      try {
+        result = JSON.parse(responseText);
+      } catch (e) {
+        console.error('Response text:', responseText);
+        throw new Error('Server trả về dữ liệu không hợp lệ');
+      }
+
+      if (isLoginMode && result.token && result.userInfo) {
+        dispatch(dalogin(result));
+        localStorage.setItem("userId", result.userInfo.id);
+        if (staySignedIn) {
+          localStorage.setItem("token", result.token);
+        }
+        const from = location.state?.from?.pathname || '/';
+        navigate(from);
+      } else if (!isLoginMode && result.thongbao) {
+        // Sau khi đăng ký thành công, tự động đăng nhập
+        const loginResponse = await fetch("http://localhost:3000/login", {
+          method: "POST",
+          headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            email: emailRef.current.value,
+            password: passwordRef.current.value
+          })
+        });
+
+        if (loginResponse.ok) {
+          const loginResult = await loginResponse.json();
+          dispatch(dalogin(loginResult));
+          localStorage.setItem("userId", loginResult.userInfo.id);
+          if (staySignedIn) {
+            localStorage.setItem("token", loginResult.token);
+          }
+          setError("Đăng ký thành công! Đang chuyển hướng...");
+          setTimeout(() => {
+            const from = location.state?.from?.pathname || '/';
+            navigate(from);
+          }, 1000);
+        } else {
+          setError("Đăng ký thành công! Vui lòng đăng nhập.");
+          setIsLoginMode(true);
+        }
+        // Clear form
+        emailRef.current.value = '';
+        passwordRef.current.value = '';
+        if (confirmPasswordRef.current) {
+          confirmPasswordRef.current.value = '';
+        }
+      } else {
+        throw new Error(result.thongbao || 'Có lỗi xảy ra');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      if (error.message.includes("Failed to fetch")) {
+        setError("Không thể kết nối đến server. Vui lòng kiểm tra lại kết nối.");
+      } else if (error.message.includes("Server trả về")) {
+        setError("Server đang gặp vấn đề. Vui lòng thử lại sau.");
+      } else {
+        setError(error.message || "Đã xảy ra lỗi, vui lòng thử lại sau");
+      }
+    }
   };
 
   // Inline styles
@@ -108,6 +186,12 @@ function Auth() {
       background: '#fff',
       boxSizing: 'border-box',
     },
+    error: {
+      color: '#ff3b30',
+      fontSize: '14px',
+      marginBottom: '15px',
+      textAlign: 'left',
+    },
     options: {
       display: 'flex',
       justifyContent: 'space-between',
@@ -146,6 +230,10 @@ function Auth() {
       fontSize: '16px',
       fontWeight: 500,
       cursor: 'pointer',
+      transition: 'background-color 0.2s',
+    },
+    loginBtnHover: {
+      backgroundColor: '#0077ed',
     },
     register: {
       marginTop: '25px',
@@ -168,7 +256,7 @@ function Auth() {
       React.createElement(
         'div',
         { style: styles.logo },
-        React.createElement('i', { className: 'bi bi-laptop' }) // Logo máy tính
+        React.createElement('i', { className: 'bi bi-laptop' })
       ),
       React.createElement(
         'h1',
@@ -180,9 +268,27 @@ function Auth() {
         { style: styles.subtitle },
         isLoginMode ? 'Đăng nhập để mua sắm tại LaptopCenter' : 'Tạo tài khoản để mua sắm tại LaptopCenter'
       ),
+      error && React.createElement(
+        'div',
+        { style: styles.error },
+        error
+      ),
       React.createElement(
         'form',
         { onSubmit: submitDuLieu },
+        !isLoginMode && React.createElement(
+          'div',
+          { style: styles.inputGroup },
+          React.createElement('input', {
+            type: 'text',
+            id: 'name',
+            ref: nameRef,
+            placeholder: 'Họ và tên',
+            required: true,
+            autoComplete: 'name',
+            style: styles.input,
+          })
+        ),
         React.createElement(
           'div',
           { style: styles.inputGroup },
@@ -269,7 +375,12 @@ function Auth() {
             ),
         React.createElement(
           'button',
-          { type: 'submit', style: styles.loginBtn },
+          { 
+            type: 'submit', 
+            style: { ...styles.loginBtn, ...styles.loginBtnHover },
+            onMouseEnter: (e) => e.target.style.backgroundColor = '#0077ed',
+            onMouseLeave: (e) => e.target.style.backgroundColor = '#0071e3'
+          },
           isLoginMode ? 'Đăng nhập' : 'Đăng ký'
         )
       ),
@@ -283,7 +394,10 @@ function Auth() {
           React.createElement(
             'span',
             {
-              onClick: () => setIsLoginMode(!isLoginMode),
+              onClick: () => {
+                setIsLoginMode(!isLoginMode);
+                setError('');
+              },
               style: styles.link,
             },
             isLoginMode ? 'Tạo tài khoản mới' : 'Đăng nhập ngay'
