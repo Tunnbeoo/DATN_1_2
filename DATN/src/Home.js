@@ -15,14 +15,29 @@ function Home() {
     const navigate = useNavigate();
     const daDangNhap = useSelector(state => state.auth.daDangNhap);
     const [listsp, ganListSP] = useState([]);
+    const [originalListsp, setOriginalListsp] = useState([]);
     const danhSachSoSanh = useSelector(state => state.compare.danhSachSoSanh); // Lấy từ Redux
     const [isCompareBoxVisible, setIsCompareBoxVisible] = useState(false);
     const [thongBao, setThongBao] = useState(false);
+    const [daSapXep, setDaSapXep] = useState(false);
 
     useEffect(() => {
         fetch("http://localhost:3000/spmoi/1")
             .then(res => res.json())
-            .then(data => ganListSP(data));
+            .then(data => {
+                if (Array.isArray(data)) {
+                    ganListSP(data);
+                    setOriginalListsp(data);
+                } else {
+                    ganListSP([]);
+                    setOriginalListsp([]);
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching products:', error);
+                ganListSP([]);
+                setOriginalListsp([]);
+            });
     }, []);
 
     useEffect(() => {
@@ -31,21 +46,42 @@ function Home() {
     }, []);
 
     const sapXepGiaTang = () => {
+        if (!Array.isArray(listsp)) return;
+        
         const sx = [...listsp].sort((a, b) => {
-            const giax = parseFloat(a.gia);
-            const giay = parseFloat(b.gia);
-            return giax - giay;
+            const giaA = parseFloat(a.gia_km || a.gia);
+            const giaB = parseFloat(b.gia_km || b.gia);
+            return giaA - giaB;
         });
         ganListSP(sx);
+        setDaSapXep(true);
     };
 
     const sapXepGiaGiam = () => {
+        if (!Array.isArray(listsp)) return;
+        
         const sx = [...listsp].sort((a, b) => {
-            const giax = parseFloat(a.gia);
-            const giay = parseFloat(b.gia);
-            return giay - giax;
+            const giaA = parseFloat(a.gia_km || a.gia);
+            const giaB = parseFloat(b.gia_km || b.gia);
+            return giaB - giaA;
         });
         ganListSP(sx);
+        setDaSapXep(true);
+    };
+    
+    const sapXepTheoLuotXem = () => {
+        if (!Array.isArray(listsp)) return;
+        
+        const sx = [...listsp].sort((a, b) => {
+            return b.luot_xem - a.luot_xem;
+        });
+        ganListSP(sx);
+        setDaSapXep(true);
+    };
+    
+    const huyBoClocVaSapXep = () => {
+        ganListSP([...originalListsp]);
+        setDaSapXep(false);
     };
 
     const xuli = (sanpham) => {
@@ -124,18 +160,29 @@ function Home() {
                     <hr className="h_r"></hr>
                 </div>
                 <div className="box_chucnang_loc_home">
-                    <label style={{ marginRight: '5px', padding: '5px', fontWeight: '700', fontSize: '15px' }}>LỌC: </label>
+                    <label style={{ marginRight: '5px', padding: '5px', fontWeight: '700', fontSize: '15px' }}>Sắp xếp: </label>
                     <select style={{ width: '220px', padding: '3px', borderRadius: '2px', border: '1px solid gray', fontSize: '15px' }}
-                        onChange={(e) => { if (e.target.value === '2') { sapXepGiaTang(); } else if (e.target.value === '3') { sapXepGiaGiam(); } }}>
-                        <option value={1}>Các chức năng:</option>
-                        <option value={2}>Giá thấp đến cao</option>
-                        <option value={3}>Giá cao đến thấp</option>
-                        <option value={4}>Sản phẩm được quan tâm</option>
+                        onChange={(e) => { 
+                            const value = e.target.value;
+                            if (value === '1') {
+                                huyBoClocVaSapXep();
+                            } else if (value === '2') { 
+                                sapXepGiaTang(); 
+                            } else if (value === '3') { 
+                                sapXepGiaGiam(); 
+                            } else if (value === '4') {
+                                sapXepTheoLuotXem();
+                            }
+                        }}>
+                        <option value={1}>Mặc định</option>
+                        <option value={2}>Giá khuyến mãi thấp đến cao</option>
+                        <option value={3}>Giá khuyến mãi cao đến thấp</option>
+                        <option value={4}>Sản phẩm được quan tâm nhiều</option>
                     </select>
                 </div>
             </div>
             <div className="tong_box_SP">
-                {listsp.map((sp, i) => (
+                {Array.isArray(listsp) && listsp.map((sp, i) => (
                     <div className="box_SP" key={i}>
                         {sp.phan_tram_gg && (
                             <div className="box_SP_khuyen_mai">
@@ -158,8 +205,12 @@ function Home() {
                             <div><button className="box_SP_SSD">SSD: {sp.dia_cung}</button></div>
                         </div>
                         <div className="box_SP_gia">
-                            <div className="box_SP_gia_km">{parseFloat(sp.gia_km).toLocaleString("vi")} VNĐ</div>
-                            <div className="box_SP_gia_goc"><del>{parseFloat(sp.gia).toLocaleString("vi")} VNĐ</del></div>
+                            <div className="box_SP_gia_km" style={{color: '#ff0000', fontWeight: 'bold'}}>
+                                {parseFloat(sp.gia_km).toLocaleString("vi")} VNĐ
+                            </div>
+                            <div className="box_SP_gia_goc" style={daSapXep ? {color: '#999'} : {}}>
+                                <del>{parseFloat(sp.gia).toLocaleString("vi")} VNĐ</del>
+                            </div>
                         </div>
                         <div className="box_SP_luot_xem"><p>Lượt xem: {sp.luot_xem}</p></div>
                         <div className="box_SP_icon">

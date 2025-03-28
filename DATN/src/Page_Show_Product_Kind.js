@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import PhanTrang from './PhanTrang';
@@ -30,46 +29,67 @@ function ShowProductOneKind() {
     document.title = "Sản phẩm theo loại";
     let { id } = useParams();
     const [spTheoLoai, setSanPhamTrongLoai] = useState([]);
+    const [daSapXep, setDaSapXep] = useState(false);
 
     useEffect(() => {
         fetch(`http://localhost:3000/sptrongloai/${id}`)
             .then(res => res.json())
-            .then(data => setSanPhamTrongLoai(data))
+            .then(data => {
+                if (Array.isArray(data)) {
+                    setSanPhamTrongLoai(data);
+                } else {
+                    setSanPhamTrongLoai([]);
+                }
+            })
             .catch(error => console.error('Error fetching products:', error));
     }, [id]);
-        const sapXepSanPhamHot = () => {
-            const sx = [...spTheoLoai].filter(sp => sp.luot_xem > 500);
-            setSanPhamTrongLoai(sx);
-        };
-        const sapXepGiaTang = () => {
-            const sx = [...spTheoLoai].sort((a, b) => {
-            const giax = parseFloat(a.gia);
-            const giay = parseFloat(b.gia);
-            return giax - giay;
-            });
-            setSanPhamTrongLoai(sx);
-        };
-        const sapXepGiaGiam = () => {
-            const sx = [...spTheoLoai].sort((a, b) => {
-            const giax = parseFloat(a.gia);
-            const giay = parseFloat(b.gia);
-            return giay - giax;
-            });
-            setSanPhamTrongLoai(sx);
-        };
+
+    const sapXepSanPhamHot = () => {
+        if (!Array.isArray(spTheoLoai)) return;
+        
+        const sx = [...spTheoLoai].filter(sp => sp.luot_xem > 500);
+        setSanPhamTrongLoai(sx);
+        setDaSapXep(true);
+    };
+    
+    const sapXepGiaTang = () => {
+        if (!Array.isArray(spTheoLoai)) return;
+        
+        const sx = [...spTheoLoai].sort((a, b) => {
+            // Sắp xếp theo giá khuyến mãi (gia_km), nếu không có thì dùng giá gốc (gia)
+            const giaA = parseFloat(a.gia_km || a.gia);
+            const giaB = parseFloat(b.gia_km || b.gia);
+            return giaA - giaB;
+        });
+        setSanPhamTrongLoai(sx);
+        setDaSapXep(true);
+    };
+    
+    const sapXepGiaGiam = () => {
+        if (!Array.isArray(spTheoLoai)) return;
+        
+        const sx = [...spTheoLoai].sort((a, b) => {
+            // Sắp xếp theo giá khuyến mãi (gia_km), nếu không có thì dùng giá gốc (gia)
+            const giaA = parseFloat(a.gia_km || a.gia);
+            const giaB = parseFloat(b.gia_km || b.gia);
+            return giaB - giaA;
+        });
+        setSanPhamTrongLoai(sx);
+        setDaSapXep(true);
+    };
+    
     return (
         <div>
-            
             <NameOneKind loai={spTheoLoai} />
             <div className='nut_chon_sap_xep'>
                    <h4 id='title' style={{fontWeight:'550',fontSize:'20px'}}>Sắp xếp theo</h4>
                    <div className='nut_chon'>
-                       <button style={{marginRight:'10px'}} type="button" className="btn btn-outline-secondary nut_chon_button" onClick={sapXepGiaGiam}><i class="bi bi-sort-down"></i> Giá Cao - Thấp</button>
-                       <button style={{marginRight:'10px'}} type="button" className="btn btn-outline-secondary nut_chon_button" onClick={sapXepGiaTang}><i class="bi bi-sort-down-alt"></i> Giá Thấp - Cao</button>
-                       <button style={{marginRight:'10px'}} type="button" className="btn btn-outline-secondary nut_chon_button" onClick={sapXepSanPhamHot}><i class="bi bi-eye"></i> Xem nhiều </button>
+                       <button style={{marginRight:'10px'}} type="button" className="btn btn-outline-secondary nut_chon_button" onClick={sapXepGiaGiam}><i className="bi bi-sort-down"></i> Giá Khuyến Mãi Cao - Thấp</button>
+                       <button style={{marginRight:'10px'}} type="button" className="btn btn-outline-secondary nut_chon_button" onClick={sapXepGiaTang}><i className="bi bi-sort-down-alt"></i> Giá Khuyến Mãi Thấp - Cao</button>
+                       <button style={{marginRight:'10px'}} type="button" className="btn btn-outline-secondary nut_chon_button" onClick={sapXepSanPhamHot}><i className="bi bi-eye"></i> Xem nhiều </button>
                    </div>
             </div>
-            <PhanTrang listSP={spTheoLoai} pageSize={20} />
+            <PhanTrang listSP={spTheoLoai} pageSize={20} daSapXep={daSapXep} />
             <div className="troVe"><a href="#oneKind"><i className="bi bi-arrow-up-short"></i></a></div>
         </div>
     );

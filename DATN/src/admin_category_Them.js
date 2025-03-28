@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import './admin.css';
 
 function AdminCategoryThem({ setRefresh }) {
     const [loai, setUs] = useState({
@@ -11,6 +12,7 @@ function AdminCategoryThem({ setRefresh }) {
     });
 
     const navigate = useNavigate();
+    const [thongBao, setThongBao] = useState(false);
 
     const xuliInput = (e) => {
         const { id, value } = e.target;
@@ -27,8 +29,14 @@ function AdminCategoryThem({ setRefresh }) {
             an_hien: parseInt(value)
         }));
     };
-    const [thongBao, setThongBao] = useState(false);
+    
     const submitDuLieu = () => {
+        // Kiểm tra dữ liệu đầu vào
+        if (!loai.ten_loai || !loai.img_loai) {
+            alert("Vui lòng nhập đầy đủ thông tin tên danh mục và hình ảnh!");
+            return;
+        }
+        
         let url = `http://localhost:3000/admin/category`;
         let otp = {
             method: "post",
@@ -38,7 +46,7 @@ function AdminCategoryThem({ setRefresh }) {
         fetch(url, otp)
             .then(res => res.json())
             .then(data => {
-                alert(data.thongbao);
+                alert(data.thongbao || "Thêm danh mục thành công!");
                 setUs({
                     ten_loai: '',
                     img_loai: '',
@@ -48,71 +56,120 @@ function AdminCategoryThem({ setRefresh }) {
                 });
                 
                 setRefresh(prev => !prev);
-                navigate('/admin/category');
+                
+                // Hiển thị thông báo
+                setThongBao(true);
+                setTimeout(() => {
+                    setThongBao(false);
+                }, 2000);
+                
+                // Đóng modal
+                const closeButton = document.querySelector('#exampleModal .btn-close');
+                if (closeButton) closeButton.click();
+            })
+            .catch(error => {
+                console.error("Lỗi khi thêm danh mục:", error);
+                alert("Có lỗi xảy ra khi thêm danh mục!");
             });
-            setThongBao(true);
-        setTimeout(() => {
-            setThongBao(false);
-        }, 2000);
     };
 
     return (
-        <div>
-            {thongBao && (
-                        <div className="thongbao" >
-                            loai Sản phẩm đã được thêm!
-                        </div>
-            )}
-        <div className="modal fade" id="exampleModal" tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true" >
-            <div className="modal-dialog modal-xl">
-                <div className="modal-content" style={{ height: '800px' }}>
-                    <div className="modal-header">
-                        <h1 className="modal-title fs-5" id="exampleModalLabel" style={{ fontWeight: '600', color: "black" }}>Thêm Danh Mục</h1>
-                         <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <>
+            <div className="notification-container">
+                {thongBao && (
+                    <div className="notification success">
+                        <i className="fas fa-check-circle"></i> Danh mục đã được thêm thành công!
                     </div>
-                    <div className="modal-body" style={{ marginTop: '-100px' }}>
-                        <form style={{ display: "grid", gridTemplateColumns: "50% 50%" }}>
-                            <div style={{ margin: '10px' }}>
-                                <div className="mb-3">
-                                    <label htmlFor="ten_loai" className="col-form-label">Tên danh mục</label>
-                                    <input type="text" className="form-control" id="ten_loai" value={loai.ten_loai} onChange={xuliInput} />
-                                </div>
-                                <div className="mb-3">
-                                    <label htmlFor="img_loai" className="col-form-label">Hình</label>
-                                    <input type="text" className="form-control" id="img_loai" value={loai.img_loai} onChange={xuliInput} />
-                                </div>
+                )}
+            </div>
+            <div className="modal fade" id="exampleModal" tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div className="modal-dialog">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h5 className="modal-title" id="exampleModalLabel">Thêm Danh Mục</h5>
+                            <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div className="modal-body">
+                            <div className="mb-3">
+                                <label htmlFor="ten_loai" className="col-form-label">Tên danh mục:</label>
+                                <input 
+                                    type="text" 
+                                    className="form-control" 
+                                    id="ten_loai" 
+                                    value={loai.ten_loai} 
+                                    onChange={xuliInput} 
+                                    placeholder="Nhập tên danh mục"
+                                />
                             </div>
-                            <div style={{ margin: '10px' }}>
-                                <div className="mb-3">
-                                    <label htmlFor="slug" className="col-form-label">Slug</label>
-                                    <input type="text" className="form-control" id="slug" value={loai.slug} onChange={xuliInput} />
-                                </div>
-                                <div className="mb-3">
-                                    <label htmlFor="thu_tu" className="col-form-label">Thứ tự</label>
-                                    <input type="number" className="form-control" id="thu_tu" value={loai.thu_tu} onChange={xuliInput} />
-                                </div>
+                            <div className="mb-3">
+                                <label htmlFor="img_loai" className="col-form-label">Hình ảnh:</label>
+                                <input 
+                                    type="text" 
+                                    className="form-control" 
+                                    id="img_loai" 
+                                    value={loai.img_loai} 
+                                    onChange={xuliInput} 
+                                    placeholder="Nhập URL hình ảnh"
+                                />
                             </div>
-                            <div style={{ margin: '10px',marginTop:"-80%", display: "grid", gridTemplateColumns: "50% 50%" }}>
-                                <div className="form-check">
-                                    <input className="form-check-input" type="radio" name="an_hien" id="an" value="0" checked={loai.an_hien === 0} onChange={xuliRadio} />
-                                    <label className="form-check-label" htmlFor="an">Ẩn</label>
-                                </div>
-                                <div className="form-check" style={{ marginLeft: '-180px' }}>
-                                    <input className="form-check-input" type="radio" name="an_hien" id="hien" value="1" checked={loai.an_hien === 1} onChange={xuliRadio} />
+                            <div className="mb-3">
+                                <label htmlFor="slug" className="col-form-label">Slug:</label>
+                                <input 
+                                    type="text" 
+                                    className="form-control" 
+                                    id="slug" 
+                                    value={loai.slug} 
+                                    onChange={xuliInput} 
+                                    placeholder="Nhập slug"
+                                />
+                            </div>
+                            <div className="mb-3">
+                                <label htmlFor="thu_tu" className="col-form-label">Thứ tự:</label>
+                                <input 
+                                    type="number" 
+                                    className="form-control" 
+                                    id="thu_tu" 
+                                    value={loai.thu_tu} 
+                                    onChange={xuliInput} 
+                                    placeholder="Nhập thứ tự hiển thị"
+                                />
+                            </div>
+                            <div className="mb-3">
+                                <label className="col-form-label d-block">Trạng thái:</label>
+                                <div className="form-check form-check-inline">
+                                    <input 
+                                        className="form-check-input" 
+                                        type="radio" 
+                                        name="an_hien" 
+                                        id="hien" 
+                                        value="1" 
+                                        checked={loai.an_hien === 1} 
+                                        onChange={xuliRadio} 
+                                    />
                                     <label className="form-check-label" htmlFor="hien">Hiện</label>
                                 </div>
+                                <div className="form-check form-check-inline">
+                                    <input 
+                                        className="form-check-input" 
+                                        type="radio" 
+                                        name="an_hien" 
+                                        id="an" 
+                                        value="0" 
+                                        checked={loai.an_hien === 0} 
+                                        onChange={xuliRadio} 
+                                    />
+                                    <label className="form-check-label" htmlFor="an">Ẩn</label>
+                                </div>
                             </div>
-                        </form>
+                        </div>
+                        <div className="modal-footer">
+                            <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                            <button type="button" className="btn btn-primary" onClick={submitDuLieu}>Xác nhận</button>
+                        </div>
                     </div>
-                    <div className="modal-footer">
-                        <button type="button" style={{backgroundColor: '#6c757d'}} className="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                        <button type="button" style={{backgroundColor: '#0d6efd'}} className="btn btn-primary" onClick={(e) => submitDuLieu(e)}>Xác nhận</button>
-                    </div>
-                    
                 </div>
             </div>
-        </div>
-        </div>
+        </>
     );
 }
 

@@ -49,9 +49,9 @@ const authenticateToken = (req, res, next) => {
 // Lấy danh sách sản phẩm mới
 app.get("/spmoi/:sosp?", async (req, res) => {
   try {
-    let sosp = parseInt(req.params.sosp) || 8;
+    let sosp = parseInt(req.params.sosp) || 12;
     if (sosp <= 1) {
-      sosp = 10;
+      sosp = 16;
     }
 
     const [rows] = await pool.query(
@@ -82,7 +82,7 @@ app.get("/spmoi/:sosp?", async (req, res) => {
 // Lấy sản phẩm hot
 app.get("/sphot", async (req, res) => {
   try {
-    const spxn = parseInt(req.query.spxn || 10); // Sửa: Lấy từ query thay vì params
+    const spxn = parseInt(req.query.spxn || 8); // Sửa: Lấy từ query thay vì params
     const limit = spxn <= 1 ? 9 : spxn;
 
     const [rows] = await pool.query(

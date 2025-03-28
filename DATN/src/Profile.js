@@ -3,46 +3,64 @@ import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import "./Profile.css";
 import { thoat } from "./authSlice";
-// import { setUser } from "./userSlice";
+import { setUser } from "./userSlice";
+
 function Profile() {
   const { userId } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const [user, setUser] = useState(null);
-  const [editedUser, setEditedUser] = useState({}); // State để lưu dữ liệu chỉnh sửa
+  const [user, setLocalUser] = useState(null);
+  const [editedUser, setEditedUser] = useState({});
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     if (!userId) {
-      console.error("Lỗi: Không tìm thấy userId từ URL!");
+      setError("Lỗi: Không tìm thấy userId từ URL!");
       return;
     }
-    fetch(`http://localhost:3000/profile/${userId}`)
-        .then(response => response.json())
-        .then(data => {
-            setUser(data);  // Cập nhật state local
-            dispatch(setUser(data)); // Lưu vào Redux
-        })
-        .catch(err => console.error("Lỗi fetch:", err));
-    const apiUrl = `http://localhost:3000/profile/${userId}`;
-    fetch(apiUrl)
-      .then(response => {
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setError("Vui lòng đăng nhập lại");
+      dispatch(thoat());
+      navigate("/auth");
+      return;
+    }
+
+    const fetchUserProfile = async () => {
+      try {
+        const response = await fetch(`http://localhost:3000/profile/${userId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.status === 401) {
+          setError("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại");
+          dispatch(thoat());
+          navigate("/auth");
+          return;
+        }
+
         if (!response.ok) {
           throw new Error(`Lỗi: ${response.status} - Không tìm thấy user`);
         }
-        return response.json();
-      })
-      .then(data => {
-        setUser(data);
-        setEditedUser(data); // Gán dữ liệu vào state chỉnh sửa
-      })
-      .catch(err => {
+
+        const data = await response.json();
+        setLocalUser(data);
+        setEditedUser(data);
+        dispatch(setUser(data));
+      } catch (err) {
         console.error("Lỗi fetch:", err.message);
         setError(err.message);
-      });
-  }, [userId, dispatch]);
+      }
+    };
+
+    fetchUserProfile();
+  }, [userId, dispatch, navigate]);
 
   // Hàm xử lý khi nhập dữ liệu vào form
   const handleChange = (e) => {
@@ -53,23 +71,39 @@ function Profile() {
   // Hàm cập nhật thông tin người dùng
   const handleUpdate = async () => {
     try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("Vui lòng đăng nhập lại");
+        dispatch(thoat());
+        navigate("/auth");
+        return;
+      }
+
       const response = await fetch(`http://localhost:3000/profile/${userId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify(editedUser),
-
       });
+
+      if (response.status === 401) {
+        setError("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại");
+        dispatch(thoat());
+        navigate("/auth");
+        return;
+      }
 
       if (!response.ok) {
         throw new Error("Cập nhật thất bại!");
       }
 
       const updatedUser = await response.json();
-      setUser(updatedUser); // Cập nhật lại state user
+      setLocalUser(updatedUser);
+      dispatch(setUser(updatedUser));
       setSuccessMessage("Cập nhật thành công!");
-      setTimeout(() => setSuccessMessage(""), 3000); // Ẩn thông báo sau 3 giây
+      setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
       setError("Cập nhật thất bại. Vui lòng thử lại!");
       console.error(err);
