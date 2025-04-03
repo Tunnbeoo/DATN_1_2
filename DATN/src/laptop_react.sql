@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Máy chủ: 127.0.0.1
--- Thời gian đã tạo: Th3 28, 2025 lúc 10:39 AM
+-- Thời gian đã tạo: Th3 30, 2025 lúc 12:43 PM
 -- Phiên bản máy phục vụ: 10.4.32-MariaDB
 -- Phiên bản PHP: 8.2.12
 
@@ -20,6 +20,32 @@ SET time_zone = "+00:00";
 --
 -- Cơ sở dữ liệu: `laptop_react`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Cấu trúc bảng cho bảng `chi_tiet_km`
+--
+
+CREATE TABLE `chi_tiet_km` (
+  `id` int(11) NOT NULL,
+  `id_km` int(11) NOT NULL,
+  `id_sp` int(11) NOT NULL,
+  `gia_km` decimal(10,2) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Đang đổ dữ liệu cho bảng `chi_tiet_km`
+--
+
+INSERT INTO `chi_tiet_km` (`id`, `id_km`, `id_sp`, `gia_km`) VALUES
+(1, 1, 1, 15000000.00),
+(2, 1, 2, 20000000.00),
+(3, 1, 3, 18000000.00),
+(4, 2, 4, 25000000.00),
+(5, 2, 5, 30000000.00),
+(6, 3, 6, 22000000.00),
+(7, 3, 7, 28000000.00);
 
 -- --------------------------------------------------------
 
@@ -145,6 +171,34 @@ INSERT INTO `don_hang_chi_tiet` (`id_ct`, `id_dh`, `id_sp`, `so_luong`) VALUES
 (41, 25, 3879, 2),
 (42, 26, 3879, 1),
 (43, 26, 1112, 1);
+
+-- --------------------------------------------------------
+
+--
+-- Cấu trúc bảng cho bảng `khuyen_mai`
+--
+
+CREATE TABLE `khuyen_mai` (
+  `id` int(11) NOT NULL,
+  `ten_km` varchar(255) NOT NULL,
+  `mo_ta` text DEFAULT NULL,
+  `ngay_bat_dau` datetime NOT NULL,
+  `ngay_ket_thuc` datetime NOT NULL,
+  `phan_tram_km` int(11) NOT NULL,
+  `trang_thai` enum('active','inactive','expired') DEFAULT 'active',
+  `hinh_anh` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Đang đổ dữ liệu cho bảng `khuyen_mai`
+--
+
+INSERT INTO `khuyen_mai` (`id`, `ten_km`, `mo_ta`, `ngay_bat_dau`, `ngay_ket_thuc`, `phan_tram_km`, `trang_thai`, `hinh_anh`, `created_at`, `updated_at`) VALUES
+(1, 'Siêu Sale 2024', 'Đại hạ giá toàn bộ sản phẩm', '2024-03-01 00:00:00', '2024-03-31 23:59:59', 30, 'active', 'sale-2024.jpg', '2025-03-30 10:20:31', '2025-03-30 10:20:31'),
+(2, 'Black Friday', 'Giảm giá đặc biệt cho ngày Black Friday', '2024-11-29 00:00:00', '2024-11-30 23:59:59', 50, 'inactive', 'black-friday.jpg', '2025-03-30 10:20:31', '2025-03-30 10:20:31'),
+(3, 'Mùa Hè Sôi Động', 'Giảm giá cho các sản phẩm mùa hè', '2024-06-01 00:00:00', '2024-06-30 23:59:59', 25, 'active', 'summer-sale.jpg', '2025-03-30 10:20:31', '2025-03-30 10:20:31');
 
 -- --------------------------------------------------------
 
@@ -10345,7 +10399,8 @@ INSERT INTO `users` (`id`, `name`, `email`, `email_verified_at`, `password`, `di
 (20, 'qwe', 'ausdk@gmail.com', NULL, '123', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL),
 (21, 'Nguyễn Ngọc Sĩ', 'nguyenngocsi.2k4.pt@gmail.com', NULL, '$2b$10$PUyC8iXxVdDRr.C6NzSzDu.gT3/AFOeX0qePflkRBKJwX.mbipBge', NULL, '0777624823Ns', '', 1, NULL, NULL, NULL, NULL, '02c5f777be78ee21b5f7de178394290a83c3fe32e724e402aca2f27912f4e307', '2025-03-20 16:28:44'),
 (22, 'haiquang', 'hailqps28353@fpt.edu.vn', NULL, '$2b$10$P/GxXl9FZD5SPyDs8tjxh.QsJI.yxOk3ly9FuBBAGzqUyfpo66j6W', NULL, 'hai123', NULL, 0, NULL, NULL, NULL, NULL, '683892', '2025-03-20 17:07:27'),
-(23, 'haiquang1', 'haily29082000@gmail.com', NULL, 'hai123', NULL, '0364982541', '', 0, NULL, NULL, NULL, NULL, NULL, NULL);
+(23, 'haiquang1', 'haily29082000@gmail.com', NULL, 'hai123', NULL, '0364982541', '', 0, NULL, NULL, NULL, NULL, NULL, NULL),
+(25, 'Trung', 'trungdf555@gmail.com', NULL, '$2b$10$HuynEhOE.CoGi.0vZnttEuzezm2JoDy4GyFAUnZZqBdTqSAGxerVO', NULL, '0919059992', '31391f3f-4051-453c-a043-dd26668c5059.JPG', 0, NULL, NULL, NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -10369,6 +10424,14 @@ CREATE TABLE `voucher` (
 --
 
 --
+-- Chỉ mục cho bảng `chi_tiet_km`
+--
+ALTER TABLE `chi_tiet_km`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `id_km` (`id_km`),
+  ADD KEY `id_sp` (`id_sp`);
+
+--
 -- Chỉ mục cho bảng `comment`
 --
 ALTER TABLE `comment`
@@ -10385,6 +10448,12 @@ ALTER TABLE `don_hang`
 --
 ALTER TABLE `don_hang_chi_tiet`
   ADD PRIMARY KEY (`id_ct`);
+
+--
+-- Chỉ mục cho bảng `khuyen_mai`
+--
+ALTER TABLE `khuyen_mai`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Chỉ mục cho bảng `loai`
@@ -10437,6 +10506,12 @@ ALTER TABLE `voucher`
 --
 
 --
+-- AUTO_INCREMENT cho bảng `chi_tiet_km`
+--
+ALTER TABLE `chi_tiet_km`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+--
 -- AUTO_INCREMENT cho bảng `comment`
 --
 ALTER TABLE `comment`
@@ -10453,6 +10528,12 @@ ALTER TABLE `don_hang`
 --
 ALTER TABLE `don_hang_chi_tiet`
   MODIFY `id_ct` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=44;
+
+--
+-- AUTO_INCREMENT cho bảng `khuyen_mai`
+--
+ALTER TABLE `khuyen_mai`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT cho bảng `loai`
@@ -10482,13 +10563,24 @@ ALTER TABLE `thuoc_tinh`
 -- AUTO_INCREMENT cho bảng `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT cho bảng `voucher`
 --
 ALTER TABLE `voucher`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- Các ràng buộc cho các bảng đã đổ
+--
+
+--
+-- Các ràng buộc cho bảng `chi_tiet_km`
+--
+ALTER TABLE `chi_tiet_km`
+  ADD CONSTRAINT `chi_tiet_km_ibfk_1` FOREIGN KEY (`id_km`) REFERENCES `khuyen_mai` (`id`),
+  ADD CONSTRAINT `chi_tiet_km_ibfk_2` FOREIGN KEY (`id_sp`) REFERENCES `san_pham` (`id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

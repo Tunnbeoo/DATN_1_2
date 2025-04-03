@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
-import { useSelector } from 'react-redux'; // Thêm import useSelector từ react-redux
+import { Routes, Route, Link, useLocation, Navigate } from 'react-router-dom'; // Thêm Link vào import
+import { useSelector } from 'react-redux';
 import './main.css';
 import Footer from './footer';
 import PageHome from './Page_Home';
@@ -11,6 +11,7 @@ import ShowProductOneKind from './Page_Show_Product_Kind';
 import NotFound from './NotFound';
 import ShowCart from './showCart';
 import ThanhToan from './ThanhToan';
+import PayMent from './PayMent';
 import CamOn from './camon';
 import Profile from "./Profile";
 import ThanhTimKiem from './thanhtiemkiem';
@@ -18,16 +19,18 @@ import Admin from './admin_dashborad';
 import AdminProduct from './admin_product';
 import AdminUser from './admin_user';
 import AdminOrder from './admin_order';
-import Auth from './auth'; // Đã sửa tên file thành chữ thường để khớp với hệ thống
-import ForgotPassword from './ForgotPassword';  
+import Auth from './auth';
+import ForgotPassword from './ForgotPassword';
 import HienSPTrongMotTrang from './HienSPTrongMotTrang';
 import SoSanh from './SoSanh';
 import ProtectedRoute from './ProtectedRoute';
-import UppdatePassWord from './doi_pass';
+import UpdatePassword from './doi_pass';
 import AdminCategory from './admin_category';
 import laptop from './laptop';
+import KhuyenMai from './KhuyenMai';
+
 function App() {
-  const daDangNhap = useSelector(state => state.auth.daDangNhap); // Dòng này giờ sẽ hoạt động
+  const daDangNhap = useSelector(state => state.auth.daDangNhap);
   const [showHeaderFooter, setShowHeaderFooter] = useState(true);
   const location = useLocation();
 
@@ -66,6 +69,7 @@ function App() {
           React.createElement(Menu, null)
         )
       )
+      
     ),
 
     // Box tìm kiếm
@@ -145,6 +149,7 @@ function App() {
         React.createElement(Route, { path: '/loai/:id', element: React.createElement(ShowProductOneKind, null) }),
         React.createElement(Route, { path: '/profile/:userId', element: React.createElement(Profile, null) }),
         React.createElement(Route, { path: '/', element: React.createElement(PageHome, null) }),
+        React.createElement(Route, { path: '/khuyen-mai', element: React.createElement(KhuyenMai, null) }),
         React.createElement(Route, { path: '*', element: React.createElement(NotFound, null) }),
         React.createElement(Route, { path: '/hien-thi-san-pham', element: React.createElement(HienSPTrongMotTrang, null) }),
         React.createElement(Route, { path: '/so-sanh', element: React.createElement(SoSanh, null) }),
@@ -153,14 +158,16 @@ function App() {
           Route,
           { element: React.createElement(ProtectedRoute, null) },
           React.createElement(Route, { path: '/showcart', element: React.createElement(ShowCart, null) }),
-          React.createElement(Route, { path: '/thanhtoan/', element: React.createElement(ThanhToan, null) }),
+          React.createElement(Route, { path: '/thanh-toan', element: React.createElement(ThanhToan, null) }),
+          React.createElement(Route, { path: '/payment/:id/:tong_tien', element: React.createElement(PayMent, null) }),
           React.createElement(Route, { path: '/thanks', element: React.createElement(CamOn, null) }),
           React.createElement(Route, { path: '/admin', element: React.createElement(Admin, null) }),
           React.createElement(Route, { path: '/admin/product', element: React.createElement(AdminProduct, null) }),
           React.createElement(Route, { path: '/admin/user', element: React.createElement(AdminUser, null) }),
           React.createElement(Route, { path: '/admin/order', element: React.createElement(AdminOrder, null) }),
           React.createElement(Route, { path: '/admin/category', element: React.createElement(AdminCategory, null) }),
-          React.createElement(Route, { path: '/doimatkhau', element: React.createElement(UppdatePassWord, null) })
+          React.createElement(Route, { path: '/doimatkhau', element: React.createElement(UpdatePassword, null) }),
+          React.createElement(Route, { path: '/profile/:userId', element: React.createElement(Profile, null) })
         )
       )
     ),

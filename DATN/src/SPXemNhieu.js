@@ -7,12 +7,13 @@ import banner_n1 from './img/banner_n1.webp';
 import banner5 from './img/banner5.jpg';
 import { useDispatch, useSelector } from 'react-redux';
 import { themSP } from './cartSlice';
-import { themVaoSoSanh } from './compareSlice';
+import { themVaoSoSanh, xoaKhoiSoSanh } from './compareSlice';
+import './home_sosanh.css';
 
 function TitleH2() {
   return (
     <div className="titile_SP">
-      <h2>SẢN PHẨM HOT THÁNG 6</h2>
+      <h2>ƯU ĐÃI HOT</h2>
       <hr className="h_r"></hr>
     </div>
   );
@@ -40,7 +41,7 @@ function SPXemNhieu() {
         }
       })
       .catch(error => {
-        console.error('Error fetching hot products:', error);
+        console.error('Lỗi khi tải sản phẩm hot:', error);
         setListSP([]);
       });
   }, []);
@@ -82,33 +83,43 @@ function SPXemNhieu() {
     }, 1000);
   };
 
-  // Cài đặt cho slideshow ở giữa trang
+  const clearCompare = () => {
+    danhSachSoSanh.forEach(sp => dispatch(xoaKhoiSoSanh(sp.id)));
+    setIsCompareBoxVisible(false);
+    localStorage.setItem('isCompareBoxVisible', 'false');
+  };
+
+  const handleCompareNow = () => {
+    navigate('/so-sanh');
+  };
+
+  // Cài đặt cho slideshow
   const slideSettings = {
-    dots: true,
+    dots: false,
     infinite: true,
     speed: 500,
-    slidesToShow: 5,
+    slidesToShow: 4,
     slidesToScroll: 1,
     autoplay: true,
     autoplaySpeed: 3000,
     arrows: true,
     responsive: [
       {
-        breakpoint: 1024,
+        breakpoint: 1200,
         settings: {
           slidesToShow: 3,
           slidesToScroll: 1
         }
       },
       {
-        breakpoint: 768,
+        breakpoint: 992,
         settings: {
           slidesToShow: 2,
           slidesToScroll: 1
         }
       },
       {
-        breakpoint: 480,
+        breakpoint: 576,
         settings: {
           slidesToShow: 1,
           slidesToScroll: 1
@@ -117,462 +128,388 @@ function SPXemNhieu() {
     ]
   };
 
-  // Chuyển từ slider sang hiển thị grid như trong hình
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
+    <div style={{ width: '100%', maxWidth: '1400px', margin: '0 auto', padding: '0 15px' }}>
       {thongBao && (
         <div className="thongbao">
           Sản phẩm đã được thêm vào so sánh!
         </div>
       )}
-      <div className="box_spxn">
-        <TitleH2 />
-        
-        {/* Banner thu cũ lên đời */}
-        <div style={{ 
-          width: '100%', 
-          backgroundColor: '#fce83a', 
-          borderRadius: '5px',
-          marginBottom: '20px',
-          padding: '10px',
-          textAlign: 'center',
-          color: '#ff0000',
-          fontSize: '24px',
-          fontWeight: 'bold'
+      
+      <TitleH2 />
+      
+      {/* Banner thu cũ lên đời */}
+      <div style={{ 
+        width: '100%', 
+        backgroundColor: '#fce83a', 
+        borderRadius: '10px',
+        marginBottom: '30px',
+        padding: '15px',
+        textAlign: 'center',
+        color: '#ff0000',
+        fontSize: '28px',
+        fontWeight: 'bold'
+      }}>
+        THU CŨ LÊN ĐỜI - TRỢ GIÁ ĐẾN 2 TRIỆU
+      </div>
+      
+      {/* Khu vực Thế Giới Di Động (banner và sản phẩm) */}
+      <div className="box_Sell" style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '20px',
+        width: '100%',
+        margin: '20px auto',
+        backgroundColor: '#fff',
+        borderRadius: '10px',
+        padding: '20px',
+        boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
+      }}>
+        {/* Banner bên trái */}
+        <div className="box_Sell_anh" style={{
+          flex: '0 0 350px',
+          minWidth: '300px',
+          backgroundColor: '#FFF01F',
+          borderRadius: '10px',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '450px',
+          overflow: 'hidden',
+          position: 'relative',
+          boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
         }}>
-          THU CŨ LÊN ĐỜI - TRỢ GIÁ ĐẾN 2 TRIỆU
+          <img
+            src="https://cdnv2.tgdd.vn/mwg-static/tgdd/Banner/71/35/7135f4920503c694c7adac1ba7590bdf.png"
+            alt="Banner Thế Giới Di Động"
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover'
+            }}
+          />
         </div>
-
-        {/* Grid hiển thị sản phẩm */}
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(4, 1fr)',
-          gap: '15px',
-          width: '100%'
+        
+        {/* Slider sản phẩm bên phải */}
+        <div className="box_Sell_sp" style={{
+          flex: '1 1 900px',
+          minWidth: '0'
         }}>
-          {Array.isArray(listsp) && listsp
-            .sort((a, b) => b.luot_xem - a.luot_xem)
-            .slice(0, sotin)
-            .map((sp, i) => (
-              <div key={sp.id_sp || sp.id} style={{ 
-                border: '1px solid #e0e0e0',
-                borderRadius: '5px',
-                padding: '15px',
-                position: 'relative',
-                backgroundColor: 'white',
-                transition: 'all 0.3s ease'
-              }}>
-                {/* Trả chậm 0% */}
-                <div style={{ 
-                  position: 'absolute', 
-                  top: '10px', 
-                  left: '10px', 
-                  color: '#003399', 
-                  fontSize: '12px', 
-                  fontWeight: 'bold',
-                  zIndex: 2 
-                }}>
-                  Trả chậm 0%
-                </div>
-
-                {/* Nhãn mẫu mới (nếu có) */}
-                {sp.is_new && (
-                  <div style={{ 
-                    position: 'absolute', 
-                    top: '10px', 
-                    right: '10px', 
-                    color: '#ff5050', 
-                    background: '#ffdddd',
-                    padding: '2px 8px',
-                    borderRadius: '3px',
-                    fontSize: '12px', 
-                    fontWeight: 'bold',
-                    zIndex: 2 
-                  }}>
-                    Mẫu mới
-                  </div>
-                )}
-
-                {/* Nhãn đặc quyền (nếu có) */}
-                {sp.is_hot && (
-                  <div style={{ 
-                    position: 'absolute', 
-                    bottom: '45%', 
-                    left: '0', 
-                    background: 'url("data:image/png;base64,") no-repeat',
-                    width: '42px',
-                    height: '42px',
-                    backgroundSize: 'contain',
-                    zIndex: 2 
-                  }}>
-                    <div style={{ color: '#734d12', fontSize: '7px', textAlign: 'center', marginTop: '8px' }}>
-                      <strong>ĐẶC<br/>QUYỀN</strong>
-                    </div>
-                  </div>
-                )}
-
-                {/* Hình ảnh sản phẩm */}
-                <div style={{ 
-                  width: '100%', 
-                  height: '180px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: '15px',
-                  marginTop: '15px'
-                }}>
-                  <Link to={`/sanpham/${sp.id}/${sp.id_loai}`}>
-                    <img 
-                      style={{ 
-                        maxWidth: '100%', 
-                        maxHeight: '180px', 
-                        objectFit: 'contain' 
-                      }} 
-                      src={sp.hinh} 
-                      title={(sp.ten_sp).toLocaleUpperCase()} 
-                      alt={sp.ten_sp} 
-                    />
-                  </Link>
-                </div>
-
-                {/* Thông tin CPU */}
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  fontSize: '12px',
-                  color: '#666',
-                  marginBottom: '8px'
-                }}>
-                  <div>i5 {sp.cpu || '12450H'}</div>
-                  <div>{sp.gpu_type || 'Intel UHD'}</div>
-                </div>
-
-                {/* Tên sản phẩm */}
-                <div style={{ height: '40px', marginBottom: '8px' }}>
-                  <Link to={`/sanpham/${sp.id}/${sp.id_loai}`} style={{ 
-                    fontSize: '14px',
-                    fontWeight: 'bold',
-                    color: '#333',
-                    textDecoration: 'none'
-                  }}>
-                    {sp.ten_sp}
-                  </Link>
-                </div>
-
-                {/* Thông tin RAM và SSD */}
-                <div style={{ 
-                  display: 'flex', 
-                  justifyContent: 'space-between',
-                  fontSize: '12px',
-                  color: '#666',
-                  marginBottom: '10px',
-                  backgroundColor: '#f5f5f5',
-                  padding: '5px',
-                  borderRadius: '3px'
-                }}>
-                  <div>RAM {sp.ram || '16 GB'}</div>
-                  <div>SSD {sp.dia_cung || '512 GB'}</div>
-                </div>
-
-                {/* Hiển thị giá */}
-                <div>
-                  {/* Online giá rẻ quá (tùy theo sản phẩm) */}
-                  {sp.gia_km < sp.gia && (
-                    <div style={{ 
-                      fontSize: '12px', 
-                      color: '#ff6600', 
-                      fontWeight: 'bold',
-                      marginBottom: '5px'
-                    }}>
-                      Online giá rẻ quá
-                    </div>
-                  )}
-                  
-                  {/* Giá khuyến mãi */}
-                  <div style={{ 
-                    fontSize: '18px',
-                    fontWeight: 'bold',
-                    color: '#ff0000',
-                    marginBottom: '5px'
-                  }}>
-                    {parseFloat(sp.gia_km || sp.gia).toLocaleString("vi")}₫
-                  </div>
-                  
-                  {/* Giá gốc và phần trăm giảm */}
-                  {sp.gia_km && sp.gia_km !== sp.gia && (
-                    <div style={{ 
+          <div className="slider-container" style={{ width: '100%' }}>
+            <Slider {...slideSettings}>
+              {Array.isArray(listsp) && listsp
+                .slice(0, 8)
+                .map((sp, i) => (
+                  <div key={i} style={{ padding: '0 12px' }}>
+                    <div style={{
+                      backgroundColor: '#fff',
+                      borderRadius: '10px',
+                      padding: '20px',
+                      height: '450px',
                       display: 'flex',
-                      alignItems: 'center',
-                      marginBottom: '5px'
+                      flexDirection: 'column',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      border: '1px solid #eee',
+                      boxShadow: '0 3px 7px rgba(0,0,0,0.08)',
+                      transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                      cursor: 'pointer'
+                    }}
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-5px)';
+                      e.currentTarget.style.boxShadow = '0 8px 15px rgba(0,0,0,0.1)';
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 3px 7px rgba(0,0,0,0.08)';
                     }}>
-                      <div style={{ 
-                        textDecoration: 'line-through',
-                        color: '#999',
-                        fontSize: '12px',
-                        marginRight: '5px'
+                      {/* Tag "Mẫu mới" */}
+                      <div style={{
+                        position: 'absolute',
+                        top: '12px',
+                        left: '12px',
+                        backgroundColor: '#F7941E',
+                        color: 'white',
+                        padding: '3px 8px',
+                        borderRadius: '4px',
+                        fontSize: '13px',
+                        fontWeight: 'bold'
                       }}>
-                        {parseFloat(sp.gia).toLocaleString("vi")}₫
+                        Mẫu mới
                       </div>
-                      <div style={{ 
-                        color: '#ff0000',
-                        fontSize: '12px'
+                      
+                      {/* Tag "Trả góm 0%" */}
+                      <div style={{
+                        position: 'absolute',
+                        top: '12px',
+                        right: '12px',
+                        color: '#999',
+                        fontSize: '13px'
                       }}>
-                        -{Math.round(((sp.gia - sp.gia_km) / sp.gia) * 100)}%
+                        Trả góp 0%
+                      </div>
+                      
+                      {/* Ảnh sản phẩm */}
+                      <div style={{
+                        height: '220px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginBottom: '15px',
+                        marginTop: '30px'
+                      }}>
+                        <Link to={`/sanpham/${sp.id}/${sp.id_loai}`}>
+                          <img
+                            src={sp.hinh}
+                            alt={sp.ten_sp}
+                            style={{
+                              maxWidth: '100%',
+                              maxHeight: '180px',
+                              objectFit: 'contain'
+                            }}
+                          />
+                        </Link>
+                      </div>
+                      
+                      {/* Tên sản phẩm */}
+                      <div style={{
+                        fontSize: '16px',
+                        fontWeight: 'bold',
+                        height: '48px',
+                        overflow: 'hidden',
+                        marginBottom: '10px',
+                        lineHeight: '1.5'
+                      }}>
+                        <Link to={`/sanpham/${sp.id}/${sp.id_loai}`} style={{
+                          color: '#333',
+                          textDecoration: 'none'
+                        }}>
+                          {sp.ten_sp}
+                        </Link>
+                      </div>
+                      
+                      {/* Thông tin màn hình */}
+                      <div style={{
+                        fontSize: '14px',
+                        color: '#666',
+                        marginBottom: '10px',
+                        display: 'flex',
+                        gap: '15px'
+                      }}>
+                        <span>Full HD+</span>
+                        <span>6.7"</span>
+                      </div>
+                      
+                      {/* Giá */}
+                      <div style={{
+                        color: '#E71D1D',
+                        fontSize: '22px',
+                        fontWeight: 'bold',
+                        marginBottom: '8px'
+                      }}>
+                        {parseFloat(sp.gia_km || sp.gia).toLocaleString("vi")}₫
+                      </div>
+                      
+                      {/* Giá gốc */}
+                      {sp.gia_km && sp.gia_km !== sp.gia && (
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px'
+                        }}>
+                          <span style={{
+                            color: '#666',
+                            fontSize: '15px',
+                            textDecoration: 'line-through'
+                          }}>
+                            {parseFloat(sp.gia).toLocaleString("vi")}₫
+                          </span>
+                          <span style={{
+                            color: '#666',
+                            fontSize: '14px',
+                            backgroundColor: '#f1f1f1',
+                            padding: '2px 5px',
+                            borderRadius: '3px'
+                          }}>
+                            -{Math.round(((sp.gia - sp.gia_km) / sp.gia) * 100)}%
+                          </span>
+                        </div>
+                      )}
+                      
+                      {/* Đánh giá */}
+                      <div style={{
+                        marginTop: '20px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        fontSize: '14px',
+                        color: '#666'
+                      }}>
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          color: '#FB6E2E'
+                        }}>
+                          <i className="bi bi-star-fill" style={{fontSize: '18px', marginRight: '2px'}}></i>
+                          <i className="bi bi-star-fill" style={{fontSize: '18px', marginRight: '2px'}}></i>
+                          <i className="bi bi-star-fill" style={{fontSize: '18px', marginRight: '2px'}}></i>
+                          <i className="bi bi-star-fill" style={{fontSize: '18px', marginRight: '2px'}}></i>
+                          <i className="bi bi-star-fill" style={{fontSize: '18px', marginRight: '2px'}}></i>
+                        </div>
+                        <span style={{ marginLeft: '5px' }}>{Math.floor(Math.random() * 300) + 1}</span>
+                      </div>
+                      
+                      {/* Tag đặc quyền */}
+                      <div style={{
+                        position: 'absolute',
+                        bottom: '20px', 
+                        left: '20px',
+                        backgroundColor: '#000',
+                        width: '85px',
+                        height: '24px',
+                        borderRadius: '4px',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center'
+                      }}>
+                        <span style={{
+                          color: '#FFA800',
+                          fontSize: '12px',
+                          fontWeight: 'bold',
+                          textTransform: 'uppercase'
+                        }}>
+                          Đặc quyền
+                        </span>
+                      </div>
+                      
+                      {/* Trả trước bao nhiêu */}
+                      <div style={{
+                        position: 'absolute',
+                        bottom: '20px',
+                        right: '20px',
+                        backgroundColor: '#fff',
+                        borderRadius: '5px',
+                        padding: '3px 8px',
+                        fontSize: '13px',
+                        color: '#E71D1D',
+                        border: '1px solid #E71D1D'
+                      }}>
+                        <i className="bi bi-calendar-check" style={{ marginRight: '5px' }}></i> Trả trước 0đ
                       </div>
                     </div>
-                  )}
-                  
-                  {/* Quà tặng */}
-                  <div style={{ 
-                    fontSize: '13px',
-                    color: '#008800',
-                    marginTop: '5px',
-                    marginBottom: '5px'
-                  }}>
-                    Quà {(Math.round(sp.gia_km * 0.14 / 10000) * 10000).toLocaleString("vi")}₫
                   </div>
-                </div>
-
-                {/* Đánh giá và lượt bán */}
-                <div style={{ 
-                  display: 'flex',
-                  alignItems: 'center',
-                  marginTop: '8px',
-                  fontSize: '12px'
-                }}>
-                  {/* Sao đánh giá */}
-                  <div style={{ color: '#ffc120' }}>★</div>
-                  <div style={{ marginLeft: '3px', marginRight: '8px' }}>
-                    {(4.5 + Math.random() * 0.5).toFixed(1)}
-                  </div>
-                  
-                  {/* Lượt bán */}
-                  <div style={{ color: '#666' }}>
-                    • Đã bán {Math.floor(sp.luot_xem / 2 + Math.random() * 500)}
-                  </div>
-                </div>
-              </div>
-            ))}
+                ))}
+            </Slider>
+          </div>
         </div>
       </div>
-
-      {/* Thêm slideshow ở đây */}
-      <div style={{ marginTop: '30px', marginBottom: '30px' }}>
+      
+      {/* Phần box ở dưới tương tự như đã có */}
+      <div style={{ marginTop: '40px', marginBottom: '40px' }}>
         <div className="titile_SP">
-          <h2>SẢN PHẨM NỔI BẬT</h2>
+          <h2>SẢN PHẨM XEM NHIỀU</h2>
           <hr className="h_r"></hr>
         </div>
         
-        <div className="slider-container" style={{ width: '100%', marginTop: '20px' }}>
-          <Slider {...slideSettings}>
-            {Array.isArray(listsp) && listsp
-              .sort((a, b) => a.gia_km - b.gia_km) // Sắp xếp theo giá từ thấp đến cao
-              .slice(0, 8)
-              .map((sp, i) => (
-                <div key={i} style={{ padding: '0 10px', position: 'relative' }}>
-                  <div style={{ 
-                    border: '1px solid #e8e8e8', 
-                    borderRadius: '8px', 
-                    padding: '15px', 
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    position: 'relative',
-                    overflow: 'hidden'
-                  }}>
-                    {/* Nhãn giảm giá */}
-                    {sp.gia_km && sp.gia_km < sp.gia && (
-                      <div style={{ 
-                        position: 'absolute',
-                        top: '10px',
-                        left: '10px',
-                        background: '#ff0000',
-                        color: 'white',
-                        padding: '2px 6px',
-                        borderRadius: '3px',
-                        fontSize: '12px',
-                        fontWeight: 'bold',
-                        zIndex: 3
-                      }}>
-                        Giảm {Math.round(((sp.gia - sp.gia_km) / sp.gia) * 100)}%
-                      </div>
-                    )}
-                    
-                    {/* Nút thêm vào giỏ hàng */}
-                    <div style={{ 
-                      position: 'absolute',
-                      top: '10px',
-                      right: '10px',
-                      zIndex: 3,
-                      width: '30px',
-                      height: '30px',
-                      background: '#ffffff',
-                      borderRadius: '50%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
-                    }} onClick={() => xuli(sp)}>
-                      <i className="bi bi-bag-plus-fill" style={{ color: '#2196f3' }}></i>
-                    </div>
-                    
-                    {/* Ảnh sản phẩm */}
-                    <div style={{ 
-                      height: '150px', 
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      marginBottom: '10px'
-                    }}>
-                      <Link to={`/sanpham/${sp.id}/${sp.id_loai}`}>
-                        <img 
-                          src={sp.hinh} 
-                          alt={sp.ten_sp} 
-                          style={{ 
-                            maxWidth: '100%',
-                            maxHeight: '130px',
-                            objectFit: 'contain'
-                          }} 
-                        />
-                      </Link>
-                    </div>
-                    
-                    {/* Tên sản phẩm */}
-                    <div style={{ 
-                      fontSize: '14px',
-                      fontWeight: 'bold',
-                      height: '40px',
-                      overflow: 'hidden',
-                      marginBottom: '8px'
-                    }}>
-                      <Link to={`/sanpham/${sp.id}/${sp.id_loai}`} style={{ 
-                        color: '#333',
-                        textDecoration: 'none'
-                      }}>
-                        {sp.ten_sp}
-                      </Link>
-                    </div>
-                    
-                    {/* Giá */}
-                    <div style={{ 
-                      color: '#ff0000',
-                      fontSize: '16px',
-                      fontWeight: 'bold',
-                      marginBottom: '5px'
-                    }}>
-                      {parseFloat(sp.gia_km || sp.gia).toLocaleString("vi")}₫
-                    </div>
-                    
-                    {/* Giá gốc */}
-                    {sp.gia_km && sp.gia_km !== sp.gia && (
-                      <div style={{ 
-                        color: '#999',
-                        fontSize: '12px',
-                        textDecoration: 'line-through'
-                      }}>
-                        {parseFloat(sp.gia).toLocaleString("vi")}₫
-                      </div>
-                    )}
-                    
-                    {/* Nút so sánh */}
-                    <div style={{ 
-                      marginTop: '10px',
-                      textAlign: 'center'
-                    }}>
-                      <button 
-                        onClick={() => themSoSanhVaChuyenTrang(sp)} 
-                        style={{ 
-                          background: '#2196f3',
-                          color: 'white',
-                          border: 'none',
-                          padding: '5px 15px',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          fontSize: '13px',
-                          transition: 'all 0.3s ease'
-                        }}
-                      >
-                        So sánh
-                      </button>
-                    </div>
-                  </div>
+        <div className="tong_box_SP">
+          {Array.isArray(listsp) && listsp.map((sp, i) => (
+            <div className="box_SP" key={i}>
+              {sp.phan_tram_gg && (
+                <div className="box_SP_khuyen_mai">
+                  Giảm {sp.phan_tram_gg}%
                 </div>
-              ))}
-          </Slider>
+              )}
+              <div className="box_SP_anh">
+                <Link to={`/sanpham/${sp.id}/${sp.id_loai}`}>
+                  <img src={sp.hinh} title={sp.ten_sp.toUpperCase()} alt={sp.ten_sp} />
+                </Link>
+              </div>
+              <div className="cart_icon" onClick={() => xuli(sp)}>
+                <i className="bi bi-bag-plus-fill"></i>
+              </div>
+              <div className="box_SP_tensp">
+                <Link to={`/sanpham/${sp.id}/${sp.id_loai}`}>{sp.ten_sp}</Link>
+              </div>
+              <div className="box_SP_RAM_SSD">
+                <div><button className="box_SP_RAM">RAM: {sp.ram}</button></div>
+                <div><button className="box_SP_SSD">SSD: {sp.dia_cung}</button></div>
+              </div>
+              <div className="box_SP_gia">
+                <div className="box_SP_gia_km" style={{color: '#ff0000', fontWeight: 'bold'}}>
+                  {parseFloat(sp.gia_km).toLocaleString("vi")} VNĐ
+                </div>
+                <div className="box_SP_gia_goc" style={daSapXep ? {color: '#999'} : {}}>
+                  <del>{parseFloat(sp.gia).toLocaleString("vi")} VNĐ</del>
+                </div>
+              </div>
+              <div className="box_SP_luot_xem"><p>Lượt xem: {sp.luot_xem}</p></div>
+              <div className="box_SP_icon">
+                <div className="box_SP_icon_star">
+                  <div className="box_SP_icon_star_dam"><i className="bi bi-star-fill"></i></div>
+                  <div className="box_SP_icon_star_dam"><i className="bi bi-star-fill"></i></div>
+                  <div className="box_SP_icon_star_dam"><i className="bi bi-star-fill"></i></div>
+                  <div className="box_SP_icon_star_dam"><i className="bi bi-star-fill"></i></div>
+                  <div className="box_SP_icon_star_nhat"><i className="bi bi-star-fill"></i></div>
+                  <div className="box_SP_icon_star_dg"><p>(Đánh giá)</p></div>
+                </div>
+                <div className="so_sanh">
+                  <button className="so_sanh_btn" onClick={() => themSoSanhVaChuyenTrang(sp)}>
+                    So sánh
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
       {/* Banner giống Home.js */}
       <div className="carousel-inner" style={{ padding: '10px', marginTop: '30px' }}>
         <div className="carousel-item active">
-          <img src={banner_n1} style={{ width: '1200px', height: '170px', borderRadius: '10px' }} className="d-block w-100" alt="Banner 1" />
-        </div>
-        <div className="carousel-item">
-          <img src={banner5} style={{ width: '1200px', height: '170px', borderRadius: '10px' }} className="d-block w-100" alt="Banner 2" />
-        </div>
-        <div className="carousel-item">
-          <img src={banner_n1} style={{ width: '1200px', height: '170px', borderRadius: '10px' }} className="d-block w-100" alt="Banner 3" />
+          <img src={banner_n1} style={{ width: '100%', height: 'auto', borderRadius: '10px' }} className="d-block w-100" alt="Banner 1" />
         </div>
       </div>
 
-      {/* Box sản phẩm tương tự Home.js */}
-      <div className="box_titile_Home" style={{ marginTop: '30px' }}>
-        <div className="titile_SP">
-          <h2>SẢN PHẨM ĐỀ XUẤT</h2>
-          <hr className="h_r"></hr>
-        </div>
-      </div>
-      <div className="tong_box_SP">
-        {Array.isArray(listsp) && listsp.slice(0, 4).map((sp, i) => (
-          <div className="box_SP" key={i}>
-            {sp.phan_tram_gg && (
-              <div className="box_SP_khuyen_mai">
-                Giảm {sp.phan_tram_gg}%
-              </div>
+      {/* Compare Box */}
+      {isCompareBoxVisible && (
+        <div className="stickcompare stickcompare_new cp-desktop spaceInDown">
+          <a href="javascript:;" onClick={clearCompare} className="clearall">
+            <i className="bi bi-x"></i>Thu gọn
+          </a>
+          <ul className="listcompare">
+            {danhSachSoSanh.map(sp => (
+              <li key={sp.id}>
+                <span className="remove-ic-compare" onClick={() => dispatch(xoaKhoiSoSanh(sp.id))}>
+                  <i className="bi bi-x"></i>
+                </span>
+                <img src={sp.hinh} alt={sp.ten_sp} />
+                <h3>{sp.ten_sp}</h3>
+                <div className="product-info">
+                  <div>RAM: {sp.ram}</div>
+                  <div>SSD: {sp.dia_cung}</div>
+                  <div className="price">{parseFloat(sp.gia_km).toLocaleString("vi")}₫</div>
+                </div>
+              </li>
+            ))}
+            {danhSachSoSanh.length < 3 && (
+              <li className="formsg">
+                <div className="cp-plus cp-plus_new">
+                  <i className="bi bi-plus-lg"></i>
+                  <p>Thêm sản phẩm</p>
+                </div>
+              </li>
             )}
-            <div className="box_SP_anh">
-              <Link to={`/sanpham/${sp.id}/${sp.id_loai}`}>
-                <img src={sp.hinh} title={sp.ten_sp.toUpperCase()} alt={sp.ten_sp} />
-              </Link>
-            </div>
-            <div className="cart_icon" onClick={() => xuli(sp)}>
-              <i className="bi bi-bag-plus-fill"></i>
-            </div>
-            <div className="box_SP_tensp">
-              <Link to={`/sanpham/${sp.id}/${sp.id_loai}`}>{sp.ten_sp}</Link>
-            </div>
-            <div className="box_SP_RAM_SSD">
-              {sp.ram && <div><button className="box_SP_RAM">RAM: {sp.ram}</button></div>}
-              {sp.dia_cung && <div><button className="box_SP_SSD">SSD: {sp.dia_cung}</button></div>}
-            </div>
-            <div className="box_SP_gia">
-              <div className="box_SP_gia_km" style={{color: '#ff0000', fontWeight: 'bold'}}>
-                {parseFloat(sp.gia_km || sp.gia).toLocaleString("vi")} VNĐ
-              </div>
-              <div className="box_SP_gia_goc" style={{color: '#999'}}>
-                <del>{parseFloat(sp.gia).toLocaleString("vi")} VNĐ</del>
-              </div>
-            </div>
-            <div className="box_SP_luot_xem"><p>Lượt xem: {sp.luot_xem}</p></div>
-            <div className="box_SP_icon">
-              <div className="box_SP_icon_star">
-                <div className="box_SP_icon_star_dam"><i className="bi bi-star-fill"></i></div>
-                <div className="box_SP_icon_star_dam"><i className="bi bi-star-fill"></i></div>
-                <div className="box_SP_icon_star_dam"><i className="bi bi-star-fill"></i></div>
-                <div className="box_SP_icon_star_dam"><i className="bi bi-star-fill"></i></div>
-                <div className="box_SP_icon_star_nhat"><i className="bi bi-star-fill"></i></div>
-                <div className="box_SP_icon_star_dg"><p>(Đánh giá)</p></div>
-              </div>
-              <div className="so_sanh">
-                <button className="so_sanh_btn" onClick={() => themSoSanhVaChuyenTrang(sp)}>
-                  So sánh
-                </button>
-              </div>
-            </div>
+          </ul>
+          <div className="closecompare">
+            <a href="javascript:;" onClick={handleCompareNow} className="doss">
+              So sánh ngay
+            </a>
+            <a href="javascript:;" onClick={clearCompare} className="txtremoveall">
+              Xóa tất cả
+            </a>
           </div>
-        ))}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
