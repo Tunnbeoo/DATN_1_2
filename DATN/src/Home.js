@@ -255,7 +255,7 @@ function Home() {
                                 </span>
                                 <img src={sp.hinh} alt={sp.ten_sp} />
                                 <h3>{sp.ten_sp}</h3>
-                                <div className="product-info">
+                                <div className="product-info-ss">
                                     <div>RAM: {sp.ram}</div>
                                     <div>SSD: {sp.dia_cung}</div>
                                     <div className="price">{parseFloat(sp.gia_km).toLocaleString("vi")}₫</div>

@@ -48,7 +48,8 @@ const authenticateToken = (req, res, next) => {
       next();
   });
 };
-const commentsRouter = require('./routes/comments')(authenticateToken);
+
+const commentsRouter = require('./routes/comments')(pool, authenticateToken);
 app.use('/comments', commentsRouter);
 
 // Cấu hình multer để lưu file ảnh
@@ -1064,6 +1065,14 @@ app.get('/comments/:productId', async (req, res) => {
     
     console.log('Fetching comments for product:', productId);
 
+    // Kiểm tra productId có hợp lệ không
+    if (!productId || isNaN(productId)) {
+      return res.status(400).json({
+        message: 'ID sản phẩm không hợp lệ',
+        received: { productId }
+      });
+    }
+
     const [comments] = await pool.query(`
       SELECT 
         bl.*, 
@@ -1079,32 +1088,74 @@ app.get('/comments/:productId', async (req, res) => {
     res.json(comments);
 
   } catch (error) {
-    console.error('Error fetching comments:', error);
+    // Log lỗi chi tiết hơn
+    console.error('Error fetching comments:', error); 
+    console.error('Error stack:', error.stack); // Log stack trace
     res.status(500).json({ 
       message: 'Lỗi server khi lấy bình luận',
-      error: error.message 
+      error: error.message // Chỉ trả về message lỗi cho client
     });
   }
 });
 
 // API thêm comment mới
-app.post('/comments', verifyToken, async (req, res) => {
+app.post('/comments', authenticateToken, async (req, res) => {
   try {
-    const { product_id, content, rating } = req.body;
-    const userId = req.user.userId; // Lấy từ token đã verify
+    // Log ngay lập tức khi nhận request
+    console.log('--- POST /comments Received ---');
+    console.log('Raw req.body:', req.body);
+    console.log('req.user from token:', req.user);
+    console.log('-----------------------------');
 
-    console.log('Adding comment:', {
-      userId,
-      product_id,
-      content,
-      rating
-    });
+    const { product_id, content, rating } = req.body;
+    // Kiểm tra xem userId có tồn tại trong req.user không
+    if (!req.user || !req.user.userId) {
+      console.error('Error: userId not found in req.user after authenticateToken');
+      return res.status(403).json({ message: 'Lỗi xác thực người dùng.' });
+    }
+    const userId = req.user.userId;
+
+    // Log request details (có thể giữ lại hoặc xóa nếu log trên đủ)
+    // console.log('Request headers:', req.headers);
+    // console.log('Parsed Body:', { product_id, content, rating });
+    // console.log('User ID from token:', userId);
 
     // Validate input
-    if (!product_id || !content || !rating || !userId) {
+    if (!product_id || isNaN(product_id)) {
+      console.log('Invalid product_id:', product_id);
       return res.status(400).json({
-        message: 'Thiếu thông tin bình luận',
-        received: { product_id, content, rating, userId }
+        message: 'ID sản phẩm không hợp lệ',
+        received: { product_id }
+      });
+    }
+
+    if (!content || content.trim().length === 0) {
+      console.log('Empty content');
+      return res.status(400).json({
+        message: 'Nội dung bình luận không được để trống',
+        received: { content }
+      });
+    }
+
+    if (!rating || isNaN(rating) || rating < 1 || rating > 5) {
+      console.log('Invalid rating:', rating);
+      return res.status(400).json({
+        message: 'Đánh giá phải từ 1 đến 5 sao',
+        received: { rating }
+      });
+    }
+
+    // Kiểm tra sản phẩm tồn tại
+    const [product] = await pool.query(
+      'SELECT id FROM san_pham WHERE id = ?',
+      [product_id]
+    );
+
+    if (product.length === 0) {
+      console.log('Product not found:', product_id);
+      return res.status(404).json({
+        message: 'Không tìm thấy sản phẩm',
+        product_id
       });
     }
 
@@ -1113,7 +1164,9 @@ app.post('/comments', verifyToken, async (req, res) => {
       INSERT INTO binh_luan 
       (id_user, id_sp, noi_dung, rating, ngay_gio) 
       VALUES (?, ?, ?, ?, NOW())
-    `, [userId, product_id, content, rating]);
+    `, [userId, product_id, content.trim(), rating]);
+
+    console.log('Insert result:', result);
 
     // Lấy comment vừa thêm
     const [newComment] = await pool.query(`
@@ -1168,113 +1221,132 @@ app.get("/khuyen-mai", async (req, res) => {
   }
 });
 
-// API lấy giỏ hàng của user
-// app.get('/gio-hang/:id_user', authenticateToken, async (req, res) => {
-//   try {
-//     const userId = parseInt(req.params.id_user);
-//     if (req.user.userId !== userId) {
-//       return res.status(403).json({ message: "Bạn không có quyền xem giỏ hàng của user này" });
-//     }
-
-//     const [cartItems] = await pool.query(
-//       `SELECT gh.*, sp.ten_sp, sp.hinh, sp.gia as gia_goc, sp.gia_km as gia_km_goc
-//        FROM gio_hang gh 
-//        JOIN san_pham sp ON gh.id_sp = sp.id 
-//        WHERE gh.id_user = ?`,
-//       [userId]
-//     );
-//     res.json(cartItems);
-//   } catch (error) {
-//     console.error('Lỗi khi lấy giỏ hàng:', error);
-//     res.status(500).json({ message: 'Lỗi server' });
-//   }
-// });
-
-// API thêm sản phẩm vào giỏ hàng
-app.post('/gio-hang', authenticateToken, async (req, res) => {
+// Lấy giỏ hàng của user
+app.get("/gio-hang/:userId", authenticateToken, async (req, res) => {
   try {
-    const { id_user, id_sp, so_luong } = req.body;
-
-    if (req.user.userId !== id_user) {
-      return res.status(403).json({ message: "Bạn không có quyền thêm sản phẩm vào giỏ hàng của user này" });
+    const userId = parseInt(req.params.userId);
+    if (req.user.userId !== userId) {
+      return res.status(403).json({ message: "Bạn không có quyền xem giỏ hàng của user này" });
     }
 
-    // Kiểm tra sản phẩm đã tồn tại trong giỏ hàng chưa
+    const [rows] = await pool.query(
+      `SELECT gh.id_sp, gh.id_user, gh.so_luong, gh.gia, gh.gia_km, sp.ten_sp, sp.hinh 
+       FROM gio_hang gh
+       JOIN san_pham sp ON gh.id_sp = sp.id
+       WHERE gh.id_user = ?`,
+      [userId]
+    );
+
+    console.log('Cart data:', rows); // Debug log
+    res.json(rows);
+  } catch (err) {
+    console.error('Error fetching cart:', err);
+    res.status(500).json({ message: "Lỗi lấy giỏ hàng", error: err.message });
+  }
+});
+
+// Cập nhật số lượng sản phẩm trong giỏ hàng
+app.put("/gio-hang/:userId/:productId", authenticateToken, async (req, res) => {
+  try {
+    const userId = parseInt(req.params.userId);
+    const productId = parseInt(req.params.productId);
+    const { quantity, price, discountPrice } = req.body;
+
+    console.log('Updating cart item:', { userId, productId, quantity, price, discountPrice });
+
+    if (req.user.userId !== userId) {
+      return res.status(403).json({ message: "Bạn không có quyền cập nhật giỏ hàng của user này" });
+    }
+
+    if (!quantity || quantity < 1 || quantity > 10) {
+      return res.status(400).json({ message: "Số lượng sản phẩm không hợp lệ" });
+    }
+
+    // Kiểm tra xem sản phẩm có tồn tại trong giỏ hàng không
     const [existingItem] = await pool.query(
-      'SELECT * FROM gio_hang WHERE id_user = ? AND id_sp = ?',
-      [id_user, id_sp]
+      `SELECT * FROM gio_hang WHERE id_user = ? AND id_sp = ?`,
+      [userId, productId]
     );
 
-    if (existingItem.length > 0) {
-      // Nếu đã tồn tại, cập nhật số lượng
-      await pool.query(
-        'UPDATE gio_hang SET so_luong = so_luong + ? WHERE id_user = ? AND id_sp = ?',
-        [so_luong, id_user, id_sp]
-      );
-    } else {
-      // Nếu chưa tồn tại, thêm mới
-      await pool.query(
-        'INSERT INTO gio_hang (id_user, id_sp, so_luong) VALUES (?, ?, ?)',
-        [id_user, id_sp, so_luong]
-      );
+    if (existingItem.length === 0) {
+      return res.status(404).json({ message: "Không tìm thấy sản phẩm trong giỏ hàng" });
     }
 
-    res.json({ message: 'Thêm vào giỏ hàng thành công' });
-  } catch (error) {
-    console.error('Lỗi khi thêm vào giỏ hàng:', error);
-    res.status(500).json({ message: 'Lỗi server' });
+    // Cập nhật số lượng sản phẩm
+    const [result] = await pool.query(
+      `UPDATE gio_hang 
+       SET so_luong = ?, gia = ?, gia_km = ?
+       WHERE id_user = ? AND id_sp = ?`,
+      [quantity, price, discountPrice, userId, productId]
+    );
+
+    console.log('Update result:', result);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Không tìm thấy sản phẩm trong giỏ hàng" });
+    }
+
+    // Lấy thông tin sản phẩm đã cập nhật
+    const [updatedItem] = await pool.query(
+      `SELECT gh.*, sp.ten_sp, sp.hinh 
+       FROM gio_hang gh
+       JOIN san_pham sp ON gh.id_sp = sp.id
+       WHERE gh.id_user = ? AND gh.id_sp = ?`,
+      [userId, productId]
+    );
+
+    console.log('Updated item:', updatedItem[0]);
+    res.json(updatedItem[0]);
+  } catch (err) {
+    console.error('Error updating cart:', err);
+    res.status(500).json({ message: "Lỗi cập nhật giỏ hàng", error: err.message });
   }
 });
 
-// API cập nhật số lượng sản phẩm trong giỏ hàng
-app.put('/gio-hang/:id_user/:id_sp', authenticateToken, async (req, res) => {
+// Xóa sản phẩm khỏi giỏ hàng
+app.delete("/gio-hang/:userId/:productId", authenticateToken, async (req, res) => {
   try {
-    const { id_user, id_sp } = req.params;
-    const { so_luong } = req.body;
+    const userId = parseInt(req.params.userId);
+    const productId = parseInt(req.params.productId);
 
-    await pool.query(
-      'UPDATE gio_hang SET so_luong = ? WHERE id_user = ? AND id_sp = ?',
-      [so_luong, id_user, id_sp]
+    if (req.user.userId !== userId) {
+      return res.status(403).json({ message: "Bạn không có quyền xóa sản phẩm khỏi giỏ hàng của user này" });
+    }
+
+    const [result] = await pool.query(
+      `DELETE FROM gio_hang WHERE id_user = ? AND id_sp = ?`,
+      [userId, productId]
     );
 
-    res.json({ message: 'Cập nhật số lượng thành công' });
-  } catch (error) {
-    console.error('Lỗi khi cập nhật số lượng:', error);
-    res.status(500).json({ message: 'Lỗi server' });
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Không tìm thấy sản phẩm trong giỏ hàng" });
+    }
+
+    res.json({ message: "Xóa sản phẩm khỏi giỏ hàng thành công" });
+  } catch (err) {
+    console.error('Error removing from cart:', err);
+    res.status(500).json({ message: "Lỗi xóa sản phẩm khỏi giỏ hàng", error: err.message });
   }
 });
 
-// API xóa sản phẩm khỏi giỏ hàng
-app.delete('/gio-hang/:id_user/:id_sp', authenticateToken, async (req, res) => {
+// Xóa toàn bộ giỏ hàng
+app.delete("/gio-hang/:userId", authenticateToken, async (req, res) => {
   try {
-    const { id_user, id_sp } = req.params;
+    const userId = parseInt(req.params.userId);
 
-    await pool.query(
-      'DELETE FROM gio_hang WHERE id_user = ? AND id_sp = ?',
-      [id_user, id_sp]
+    if (req.user.userId !== userId) {
+      return res.status(403).json({ message: "Bạn không có quyền xóa giỏ hàng của user này" });
+    }
+
+    const [result] = await pool.query(
+      `DELETE FROM gio_hang WHERE id_user = ?`,
+      [userId]
     );
 
-    res.json({ message: 'Xóa sản phẩm khỏi giỏ hàng thành công' });
-  } catch (error) {
-    console.error('Lỗi khi xóa sản phẩm:', error);
-    res.status(500).json({ message: 'Lỗi server' });
-  }
-});
-
-// API xóa toàn bộ giỏ hàng của user
-app.delete('/gio-hang/:id_user', authenticateToken, async (req, res) => {
-  try {
-    const { id_user } = req.params;
-
-    await pool.query(
-      'DELETE FROM gio_hang WHERE id_user = ?',
-      [id_user]
-    );
-
-    res.json({ message: 'Xóa giỏ hàng thành công' });
-  } catch (error) {
-    console.error('Lỗi khi xóa giỏ hàng:', error);
-    res.status(500).json({ message: 'Lỗi server' });
+    res.json({ message: "Xóa giỏ hàng thành công" });
+  } catch (err) {
+    console.error('Error clearing cart:', err);
+    res.status(500).json({ message: "Lỗi xóa giỏ hàng", error: err.message });
   }
 });
 
@@ -1309,6 +1381,97 @@ app.get('/policies', async (req, res) => {
         console.error(error);
         res.status(500).json({ message: 'Lỗi server' });
     }
+});
+
+// --- Thêm endpoint POST /gio-hang --- 
+app.post("/gio-hang", authenticateToken, async (req, res) => {
+  console.log('[POST /gio-hang] Received request'); // Log khi bắt đầu
+  try {
+    const { id_sp, id_user, so_luong, gia, gia_km } = req.body;
+    const tokenUserId = req.user.userId;
+
+    console.log('[POST /gio-hang] Data:', { id_sp, id_user, so_luong, gia, gia_km, tokenUserId });
+
+    if (id_user !== tokenUserId) {
+      console.log('[POST /gio-hang] Auth Error: User ID mismatch');
+      return res.status(403).json({ message: "Bạn không có quyền thêm sản phẩm vào giỏ hàng của user này" });
+    }
+
+    if (!id_sp || !id_user || !so_luong || so_luong < 1) {
+        console.log('[POST /gio-hang] Validation Error: Invalid data');
+        return res.status(400).json({ message: "Dữ liệu thêm vào giỏ hàng không hợp lệ" });
+    }
+
+    // Kiểm tra item tồn tại
+    console.log(`[POST /gio-hang] Checking existing item for user: ${id_user}, product: ${id_sp}`);
+    const [existingItem] = await pool.query(
+      `SELECT * FROM gio_hang WHERE id_user = ? AND id_sp = ?`,
+      [id_user, id_sp]
+    );
+    console.log('[POST /gio-hang] Existing item found:', existingItem);
+
+    let finalCartItem;
+    if (existingItem.length > 0) {
+      // --- Cập nhật số lượng --- 
+      console.log('[POST /gio-hang] Item exists, updating quantity.');
+      const currentQuantity = existingItem[0].so_luong;
+      const newQuantity = currentQuantity + so_luong;
+      console.log(`[POST /gio-hang] New quantity: ${newQuantity}`);
+
+      if (newQuantity > 10) { 
+          console.log('[POST /gio-hang] Validation Error: Quantity exceeds limit');
+          return res.status(400).json({ message: "Số lượng sản phẩm trong giỏ hàng không thể vượt quá 10" });
+      }
+
+      // Thực hiện UPDATE
+      const [updateResult] = await pool.query( // Lấy kết quả để log
+        `UPDATE gio_hang 
+         SET so_luong = ?, gia = ?, gia_km = ? 
+         WHERE id_user = ? AND id_sp = ?`,
+        [newQuantity, gia, gia_km, id_user, id_sp]
+      );
+      console.log('[POST /gio-hang] UPDATE result:', updateResult);
+      // Lấy lại item đã cập nhật
+       const [updatedItemResult] = await pool.query(
+        `SELECT gh.*, sp.ten_sp, sp.hinh 
+         FROM gio_hang gh
+         JOIN san_pham sp ON gh.id_sp = sp.id
+         WHERE gh.id_user = ? AND gh.id_sp = ?`,
+        [id_user, id_sp]
+      );
+      finalCartItem = updatedItemResult[0];
+      console.log('[POST /gio-hang] Updated item to return:', finalCartItem);
+
+    } else {
+      // --- Thêm mới --- 
+      console.log('[POST /gio-hang] Item does not exist, inserting new.');
+      // Thực hiện INSERT
+      const [insertResult] = await pool.query( // Lấy kết quả để log
+        `INSERT INTO gio_hang (id_user, id_sp, so_luong, gia, gia_km) 
+         VALUES (?, ?, ?, ?, ?)`,
+        [id_user, id_sp, so_luong, gia, gia_km]
+      );
+       console.log('[POST /gio-hang] INSERT result:', insertResult);
+       // Lấy lại item vừa thêm
+       const [newItemResult] = await pool.query(
+        `SELECT gh.*, sp.ten_sp, sp.hinh 
+         FROM gio_hang gh
+         JOIN san_pham sp ON gh.id_sp = sp.id
+         WHERE gh.id_user = ? AND gh.id_sp = ?`,
+        [id_user, id_sp]
+      );
+      finalCartItem = newItemResult[0];
+       console.log('[POST /gio-hang] Inserted item to return:', finalCartItem);
+    }
+    
+    console.log('[POST /gio-hang] Sending success response.');
+    res.status(201).json(finalCartItem);
+
+  } catch (err) {
+    console.error('[POST /gio-hang] Error:', err); // Log lỗi chi tiết
+    console.error('[POST /gio-hang] Error stack:', err.stack); // Log stack trace
+    res.status(500).json({ message: "Lỗi khi thêm/cập nhật giỏ hàng", error: err.message });
+  }
 });
 
 app.listen(3000, () => console.log('Ứng dụng đang chạy với port 3000'));

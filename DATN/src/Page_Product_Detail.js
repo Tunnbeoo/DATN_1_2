@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux'; // Thêm useSelector để lấy thông tin user từ Redux
-import { themSP } from './cartSlice';
+import { addToCart } from './redux/cartActions';
 import './boxPro.css';
 import anh4 from './img/anh4.png';
 import outdatew from './img/outdated.webp';
@@ -71,30 +71,48 @@ function ProductDetail() {
             });
     }, [id_loai]);
 
-    // Lấy danh sách bình luận của sản phẩm
-    useEffect(() => {
-        const fetchComments = async () => {
-            try {
-                console.log('Fetching comments for product:', id);
-                const response = await fetch(`http://localhost:3000/comments/${id}`);
-                
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.message || 'Lỗi khi tải bình luận');
-                }
-
-                const data = await response.json();
-                console.log('Received comments:', data);
-                setComments(data);
-            } catch (error) {
-                console.error('Error fetching comments:', error);
+    // Khai báo lại fetchComments để có thể gọi từ handleCommentSubmit
+    const fetchComments = async () => {
+        try {
+            console.log('Fetching comments for product:', id);
+            const response = await fetch(`http://localhost:3000/comments/${id}`);
+            
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ message: 'Lỗi không xác định từ server' }));
+                console.error('API Error:', errorData);
+                throw new Error(errorData.thongbao || errorData.message || 'Lỗi khi tải bình luận');
             }
-        };
 
+            const data = await response.json();
+            console.log('Received data:', data);
+
+            if (data && Array.isArray(data.comments)) {
+                 setComments(data.comments);
+                 setTotalComments(data.total || 0);
+                 const avgRatingValue = parseFloat(data.average_rating);
+                 setAverageRating(isNaN(avgRatingValue) ? 0 : avgRatingValue);
+            } else {
+                console.error('Invalid comments data format:', data);
+                setComments([]);
+                setTotalComments(0);
+                setAverageRating(0); 
+            }
+
+        } catch (error) {
+            console.error('Error fetching comments:', error);
+            setComments([]); 
+            setTotalComments(0);
+            setAverageRating(0); 
+        }
+    };
+
+    // Lấy danh sách bình luận của sản phẩm ban đầu
+    useEffect(() => {
         if (id) {
             fetchComments();
         }
-    }, [id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [id]); // Chỉ chạy khi id thay đổi
 
     // Thêm useEffect cho countdown
     useEffect(() => {
@@ -117,69 +135,86 @@ function ProductDetail() {
         return () => clearInterval(timer);
     }, []);
 
-    // Thêm useEffect để tính toán
-    useEffect(() => {
-        if (comments.length > 0) {
-            const total = comments.reduce((sum, comment) => sum + comment.rating, 0);
-            setAverageRating(total / comments.length);
-            setTotalComments(comments.length);
-        }
-    }, [comments]);
-
     const increaseQuantity = () => setQuantity(prev => prev + 1);
     const decreaseQuantity = () => setQuantity(prev => (prev > 1 ? prev - 1 : 1));
 
-    const xuli = (sanpham) => {
-        dispatch(themSP({ ...sanpham, quantity }));
-        setThongBao(true);
-        setTimeout(() => setThongBao(false), 2000);
+    const xuli = async (sanpham) => {
+        if (!user || !user.id) {
+            alert('Vui lòng đăng nhập để thêm vào giỏ hàng!'); 
+            return; 
+        }
+
+        try {
+            await dispatch(addToCart({ 
+                userId: user.id,
+                product: sanpham, 
+                quantity: quantity 
+            })).unwrap();
+
+            setThongBao(true); 
+            setTimeout(() => setThongBao(false), 2000);
+
+        } catch (error) {
+            console.error("Add to cart failed:", error);
+            alert(`Thêm vào giỏ hàng thất bại: ${error.message || 'Lỗi không xác định'}`);
+            setThongBao(false);
+        }
     };
 
     // Thêm hàm xử lý submit comment
     const handleCommentSubmit = async (e) => {
         e.preventDefault();
         
-        if (!daDangNhap) {
+        const token = localStorage.getItem('token');
+        if (!token) {
             setCommentError('Vui lòng đăng nhập để bình luận');
+            return;
+        }
+        if (!newComment.trim()) {
+            setCommentError('Vui lòng nhập nội dung bình luận');
+            return;
+        }
+        if (!rating || rating < 1 || rating > 5) {
+            setCommentError('Vui lòng chọn số sao đánh giá từ 1-5');
             return;
         }
 
         setIsLoading(true);
+        setCommentError('');
+
         try {
-            console.log('Sending comment data:', {
-                product_id: id,
-                content: newComment,
-                rating: rating
-            });
+            console.log('Sending comment data:', { product_id: parseInt(id), content: newComment.trim(), rating: parseInt(rating) });
 
             const response = await fetch('http://localhost:3000/comments', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({
-                    product_id: parseInt(id),
-                    content: newComment,
-                    rating: parseInt(rating)
-                })
+                body: JSON.stringify({ product_id: parseInt(id), content: newComment.trim(), rating: parseInt(rating) })
             });
 
-            const data = await response.json();
+            // Không cần đọc response.json() nếu không dùng đến data trả về
+            // const data = await response.json(); 
+            // console.log('Server response:', data);
 
             if (!response.ok) {
-                throw new Error(data.message || 'Lỗi khi thêm bình luận');
+                // Nếu lỗi, cố gắng đọc lỗi từ server
+                const errorData = await response.json().catch(() => ({ message: 'Lỗi không xác định từ server' }));
+                throw new Error(errorData.thongbao || errorData.message || 'Lỗi khi thêm bình luận');
             }
 
-            setComments(prevComments => [data, ...prevComments]);
+            // Thành công: Reset form và gọi lại fetchComments để cập nhật list
             setNewComment('');
             setRating(5);
             setCommentError('');
             alert('Đã thêm bình luận thành công!');
+            fetchComments(); // Gọi lại để lấy danh sách mới nhất
 
         } catch (error) {
             console.error('Comment error:', error);
-            setCommentError('Không thể thêm bình luận: ' + error.message);
+            // Hiển thị lỗi cụ thể hơn nếu có
+            setCommentError('Không thể thêm bình luận: ' + error.message); 
         } finally {
             setIsLoading(false);
         }

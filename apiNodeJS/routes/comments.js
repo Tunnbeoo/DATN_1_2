@@ -1,16 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('../db'); // Import pool từ db.js
 
-module.exports = (authenticateToken) => {
+module.exports = (pool, authenticateToken) => {
     router.get('/:product_id', async (req, res) => {
         try {
-            const product_id = parseInt(req.params.product_id);
-            if (isNaN(product_id) || product_id <= 0) {
+            const product_id_param = parseInt(req.params.product_id);
+            if (isNaN(product_id_param) || product_id_param <= 0) {
                 return res.status(400).json({ thongbao: "ID sản phẩm không hợp lệ" });
             }
 
-            const [product] = await pool.query(`SELECT id FROM san_pham WHERE id = ?`, [product_id]);
+            const [product] = await pool.query(`SELECT id FROM san_pham WHERE id = ?`, [product_id_param]);
             if (product.length === 0) {
                 return res.status(404).json({ thongbao: "Sản phẩm không tồn tại" });
             }
@@ -20,56 +19,66 @@ module.exports = (authenticateToken) => {
             const offset = (page - 1) * limit;
 
             const [rows] = await pool.query(
-                `SELECT c.id, c.user_id, c.user_name, c.Rating, c.Comment_Text, c.product_id, c.created_at,
-                        u.hinh as user_avatar
+                `SELECT 
+                    c.id, 
+                    c.user_id,
+                    c.Comment_Text,
+                    c.Rating,
+                    c.created_at,
+                    u.name as user_name,
+                    u.hinh as user_avatar
                  FROM comment c
-                 LEFT JOIN users u ON c.user_id = u.id
+                 JOIN users u ON c.user_id = u.id
                  WHERE c.product_id = ? 
                  ORDER BY c.created_at DESC 
                  LIMIT ? OFFSET ?`,
-                [product_id, limit, offset]
+                [product_id_param, limit, offset]
             );
 
-            const [total] = await pool.query(`SELECT COUNT(*) as total FROM comment WHERE product_id = ?`, [product_id]);
-            const [avgRating] = await pool.query(`SELECT AVG(Rating) as average_rating FROM comment WHERE product_id = ?`, [product_id]);
+            const [totalResult] = await pool.query(`SELECT COUNT(*) as total FROM comment WHERE product_id = ?`, [product_id_param]);
+            const totalComments = totalResult[0].total;
+
+            const [avgRatingResult] = await pool.query(`SELECT AVG(Rating) as average_rating FROM comment WHERE product_id = ?`, [product_id_param]);
+            const averageRating = avgRatingResult[0].average_rating || 0;
 
             res.json({
                 comments: rows,
-                total: total[0].total,
+                total: totalComments,
                 page,
                 limit,
-                average_rating: avgRating[0].average_rating || 0
+                average_rating: averageRating
             });
         } catch (err) {
             console.error("Lỗi GET /comments:", err);
+            console.error("Error stack (GET /comments):", err.stack);
             res.status(500).json({ thongbao: "Lỗi lấy danh sách bình luận", error: err.message });
         }
     });
 
     router.post('/', authenticateToken, async (req, res) => {
         try {
-            const { user_id, user_name, Rating, Comment_Text, product_id } = req.body;
+            const { content, rating, product_id } = req.body;
 
-            if (!user_id || !product_id || !Comment_Text) {
-                return res.status(400).json({ thongbao: "Thiếu thông tin bắt buộc" });
+            const userId = req.user.userId;
+
+            console.log('--- POST /comments (in router) Received ---');
+            console.log('Body:', { content, rating, product_id });
+            console.log('User ID from token:', userId);
+            console.log('-----------------------------------------');
+
+            if (!userId) {
+                return res.status(403).json({ thongbao: "Lỗi xác thực người dùng (không tìm thấy userId trong token)." });
             }
-
-            if (req.user.userId !== user_id) {
-                return res.status(403).json({ thongbao: "Bạn không có quyền thêm bình luận cho user này" });
+            if (!product_id || isNaN(product_id)) {
+                return res.status(400).json({ thongbao: "Thiếu hoặc sai ID sản phẩm", received: { product_id } });
             }
-
-            const [user] = await pool.query(`SELECT id FROM users WHERE id = ?`, [user_id]);
-            if (user.length === 0) {
-                return res.status(404).json({ thongbao: "Người dùng không tồn tại" });
+            const commentText = content ? content.trim() : '';
+            if (commentText.length === 0 || commentText.length > 500) {
+                return res.status(400).json({ thongbao: "Nội dung bình luận không hợp lệ (1-500 ký tự)", received: { content } });
             }
-
-            const ratingValue = parseInt(Rating) || 0;
-            if (ratingValue < 0 || ratingValue > 5) {
-                return res.status(400).json({ thongbao: "Rating phải từ 0 đến 5" });
-            }
-
-            if (!Comment_Text || Comment_Text.length < 1 || Comment_Text.length > 500) {
-                return res.status(400).json({ thongbao: "Nội dung bình luận phải từ 1 đến 500 ký tự" });
+            const ratingValue = parseInt(rating);
+            if (isNaN(ratingValue) || ratingValue < 1 || ratingValue > 5) {
+                return res.status(400).json({ thongbao: "Rating phải từ 1 đến 5", received: { rating } });
             }
 
             const [product] = await pool.query(`SELECT id FROM san_pham WHERE id = ?`, [product_id]);
@@ -77,33 +86,43 @@ module.exports = (authenticateToken) => {
                 return res.status(404).json({ thongbao: "Sản phẩm không tồn tại" });
             }
 
+            const [userRows] = await pool.query('SELECT name, hinh FROM users WHERE id = ?', [userId]);
+            if (userRows.length === 0) {
+                return res.status(404).json({ thongbao: "Người dùng không tồn tại trong database." });
+            }
+            const userName = userRows[0].name;
+            const userAvatar = userRows[0].hinh;
+
             const [existingComment] = await pool.query(
                 `SELECT id FROM comment WHERE user_id = ? AND product_id = ?`,
-                [user_id, product_id]
+                [userId, product_id]
             );
             if (existingComment.length > 0) {
                 return res.status(400).json({ thongbao: "Bạn đã bình luận cho sản phẩm này rồi" });
             }
 
             const [result] = await pool.query(
-                `INSERT INTO comment (user_id, user_name, Rating, Comment_Text, product_id) 
-                 VALUES (?, ?, ?, ?, ?)`,
-                [user_id, user_name || 'Khách', ratingValue, Comment_Text, product_id]
+                `INSERT INTO comment (user_id, product_id, Comment_Text, Rating, created_at) 
+                 VALUES (?, ?, ?, ?, NOW())`,
+                [userId, product_id, commentText, ratingValue]
             );
 
             const newComment = {
                 id: result.insertId,
-                user_id,
-                user_name: user_name || 'Khách',
+                user_id: userId,
+                product_id: product_id,
+                Comment_Text: commentText,
                 Rating: ratingValue,
-                Comment_Text,
-                product_id,
                 created_at: new Date().toISOString(),
+                user_name: userName,
+                user_avatar: userAvatar
             };
 
-            res.json({ thongbao: "Thêm bình luận thành công", comment: newComment });
+            console.log("Added comment:", newComment);
+            res.status(201).json(newComment);
         } catch (err) {
             console.error("Lỗi POST /comments:", err);
+            console.error("Error stack (POST /comments):", err.stack);
             res.status(500).json({ thongbao: "Thêm bình luận thất bại", error: err.message });
         }
     });

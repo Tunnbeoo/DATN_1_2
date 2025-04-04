@@ -111,16 +111,17 @@
     gap: 5px;
 }
 
-.product-info {
+.product-info-ss {
     font-size: 12px;
     text-align: center;
+    display: grid;
 }
 
-.product-info div {
+.product-info-ss div {
     margin: 3px 0;
 }
 
-.product-info .price {
+.product-info-ss .price {
     color: #ff0000;
     font-weight: bold;
 }
