@@ -82,7 +82,8 @@ export const removeFromCart = createAsyncThunk(
         throw new Error(errorData.message || 'Không thể xóa sản phẩm');
       }
 
-      return productId;
+      const data = await response.json();
+      return data;
     } catch (error) {
       console.error('Remove From Cart Error:', error);
       return rejectWithValue(error.message);
@@ -110,7 +111,8 @@ export const clearCart = createAsyncThunk(
         throw new Error(errorData.message || 'Không thể xóa giỏ hàng');
       }
 
-      return userId;
+      const data = await response.json();
+      return data;
     } catch (error) {
       console.error('Clear Cart Error:', error);
       return rejectWithValue(error.message);
@@ -133,8 +135,6 @@ export const addToCart = createAsyncThunk(
         gia_km: product.gia_km || product.gia || 0
       };
 
-      console.log('Sending Add to Cart Data:', cartItemData);
-
       const response = await fetch(`http://localhost:3000/gio-hang`, {
         method: 'POST',
         headers: {
@@ -150,7 +150,6 @@ export const addToCart = createAsyncThunk(
       }
 
       const data = await response.json();
-      console.log('Add to Cart Response:', data);
       return data;
     } catch (error) {
       console.error('Add to Cart Error:', error);

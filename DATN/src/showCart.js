@@ -12,6 +12,9 @@ function ShowCart() {
   const user = useSelector(state => state.auth.user);
   const token = localStorage.getItem('token');
   const [message, setMessage] = useState('');
+  const [cartItems, setCartItems] = useState([]);
+  const [totalPrice, setTotalPrice] = useState(0);
+  const [selectedItems, setSelectedItems] = useState({});
 
   useEffect(() => {
     if (!token || !user) {
@@ -21,231 +24,283 @@ function ShowCart() {
     dispatch(fetchCart(user.id));
   }, [dispatch, user, token, navigate]);
 
+  useEffect(() => {
+    if (listSP) {
+      // Xử lý dữ liệu từ server để loại bỏ trùng lặp
+      const uniqueItems = listSP.reduce((acc, currentItem) => {
+        const existingItem = acc.find(item => item.id === currentItem.id);
+        if (existingItem) {
+          // Nếu sản phẩm đã tồn tại, cộng dồn số lượng
+          const newQuantity = Number(existingItem.so_luong) + Number(currentItem.so_luong);
+          if (newQuantity > 10) {
+            existingItem.so_luong = 10;
+            setMessage('Số lượng sản phẩm đã đạt tối đa (10)');
+          } else {
+            existingItem.so_luong = newQuantity;
+          }
+          // Cập nhật số lượng trên server
+          dispatch(updateCartItem({
+            userId: user.id,
+            productId: existingItem.id,
+            quantity: existingItem.so_luong,
+            price: existingItem.gia,
+            discountPrice: existingItem.gia_km || existingItem.gia
+          }));
+          // Xóa bản sao
+          dispatch(removeFromCart({
+            userId: user.id,
+            productId: currentItem.id
+          }));
+        } else {
+          acc.push({...currentItem});
+        }
+        return acc;
+      }, []);
+
+      setCartItems(uniqueItems);
+      const initialSelected = uniqueItems.reduce((acc, item) => {
+        acc[item.id] = false;
+        return acc;
+      }, {});
+      setSelectedItems(initialSelected);
+      calculateAndSetTotal([]);
+    }
+  }, [listSP, dispatch, user.id]);
+
+  const calculateAndSetTotal = (items) => {
+    const total = items.reduce((sum, item) => {
+      const price = Number(item.gia_km) || Number(item.gia) || 0;
+      const quantity = Number(item.so_luong) || 0;
+      return sum + (price * quantity);
+    }, 0);
+    setTotalPrice(total);
+  };
+
+  const handleSelectItem = (productId) => {
+    setSelectedItems(prev => {
+      const newSelected = { ...prev, [productId]: !prev[productId] };
+      
+      // Tính toán lại tổng tiền dựa trên các sản phẩm được chọn
+      const selectedProducts = cartItems.filter(item => newSelected[item.id]);
+      calculateAndSetTotal(selectedProducts);
+      
+      return newSelected;
+    });
+  };
+
+  const handleSelectAll = () => {
+    const allSelected = Object.values(selectedItems).every(Boolean);
+    const newSelected = cartItems.reduce((acc, item) => {
+      acc[item.id] = !allSelected;
+      return acc;
+    }, {});
+    setSelectedItems(newSelected);
+    
+    // Tính toán lại tổng tiền
+    const selectedProducts = allSelected ? [] : cartItems;
+    calculateAndSetTotal(selectedProducts);
+  };
+
   const handleQuantityChange = async (productId, newQuantity) => {
-    console.log('handleQuantityChange called with:');
-    console.log('productId:', productId);
-    console.log('newQuantity:', newQuantity);
-    console.log('Current listSP state:', listSP);
-
-    if (!user || !user.id) {
-      setMessage('Vui lòng đăng nhập để thực hiện thao tác này');
-      return;
-    }
-    if (newQuantity < 1 || newQuantity > 10) {
-      setMessage('Số lượng phải từ 1 đến 10');
-      return;
-    }
-
     try {
-      console.log(`Finding product with productId: ${productId} (Type: ${typeof productId})`);
-      const product = listSP.find((item, index) => {
-        const currentItemId = item.id;
-        const currentItemIdParsed = parseInt(currentItemId);
-        const targetProductIdParsed = parseInt(productId);
-        const areEqual = currentItemIdParsed === targetProductIdParsed;
+      const product = cartItems.find(item => item.id === productId);
+      if (!product) return;
 
-        console.log(`  [Item ${index}] id: ${currentItemId} (Type: ${typeof currentItemId}) -> Parsed: ${currentItemIdParsed}`);
-        console.log(`  [Item ${index}] Comparing with productId: ${productId} -> Parsed: ${targetProductIdParsed}`);
-        console.log(`  [Item ${index}] Are equal (===)?: ${areEqual}`);
-        
-        return areEqual; 
-      }); 
-      console.log('Final product found in listSP:', product);
-
-      if (!product) {
-        setMessage('Không tìm thấy sản phẩm trong state listSP (dùng item.id - check console)');
+      if (newQuantity < 1 || newQuantity > 10) {
+        setMessage('Số lượng phải từ 1 đến 10');
         return;
       }
 
+      // Gọi action cập nhật số lượng
       await dispatch(updateCartItem({
         userId: user.id,
-        productId,
+        productId: productId,
         quantity: newQuantity,
-        price: product.gia || 0,
-        discountPrice: product.gia_km || 0
-      })).unwrap();
+        price: product.gia,
+        discountPrice: product.gia_km || product.gia
+      }));
+
+      // Cập nhật UI từ Redux store
+      const updatedItems = listSP.map(item => 
+        item.id === productId 
+          ? { ...item, so_luong: newQuantity }
+          : item
+      );
+      setCartItems(updatedItems);
+      
+      // Tính lại tổng tiền cho các sản phẩm được chọn
+      const selectedProducts = updatedItems.filter(item => selectedItems[item.id]);
+      calculateAndSetTotal(selectedProducts);
 
       setMessage('Cập nhật số lượng thành công');
     } catch (error) {
-      const errorMessage = error.message || 'Lỗi không xác định';
-      setMessage(`Cập nhật số lượng thất bại: ${errorMessage}`);
+      setMessage('Lỗi khi cập nhật số lượng');
     }
   };
 
   const handleRemoveItem = async (productId) => {
-    if (!user || !user.id) {
-      setMessage('Vui lòng đăng nhập để thực hiện thao tác này');
-      return;
-    }
-    if (window.confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')) {
-      try {
-        await dispatch(removeFromCart({ userId: user.id, productId })).unwrap();
-        setMessage('Đã xóa sản phẩm thành công');
-      } catch (error) {
-        const errorMessage = error.message || 'Lỗi không xác định';
-        setMessage(`Xóa sản phẩm thất bại: ${errorMessage}`);
+    try {
+      // Xóa sản phẩm khỏi server
+      await dispatch(removeFromCart({ 
+        userId: user.id, 
+        productId: productId 
+      }));
+
+      // Cập nhật lại giỏ hàng từ server
+      const response = await dispatch(fetchCart(user.id));
+      
+      if (response.payload) {
+        // Cập nhật state với dữ liệu mới từ server
+        setCartItems(response.payload);
+        const initialSelected = response.payload.reduce((acc, item) => {
+          acc[item.id] = false;
+          return acc;
+        }, {});
+        setSelectedItems(initialSelected);
+        calculateAndSetTotal([]);
       }
+
+      setMessage('Đã xóa sản phẩm thành công');
+    } catch (error) {
+      setMessage('Lỗi khi xóa sản phẩm');
     }
   };
 
   const handleClearCart = async () => {
     if (window.confirm('Bạn có chắc chắn muốn xóa toàn bộ giỏ hàng?')) {
       try {
-        await dispatch(clearCart(user.id)).unwrap();
+        // Xóa toàn bộ giỏ hàng trên server
+        await dispatch(clearCart(user.id));
+        
+        // Reset local state
+        setCartItems([]);
+        setSelectedItems({});
+        setTotalPrice(0);
+
+        // Cập nhật lại giỏ hàng từ server
+        await dispatch(fetchCart(user.id));
+
         setMessage('Đã xóa toàn bộ giỏ hàng');
       } catch (error) {
-        setMessage('Xóa giỏ hàng thất bại: ' + error.message);
+        setMessage('Lỗi khi xóa giỏ hàng');
       }
     }
   };
 
-  const calculateTotal = () => {
-    return listSP.reduce((total, item) => {
-      const price = item.gia_km || item.gia || 0;
-      return total + price * item.so_luong;
-    }, 0);
+  const handleCheckout = () => {
+    if (totalPrice === 0) {
+      setMessage('Vui lòng chọn sản phẩm để thanh toán');
+      return;
+    }
+
+    // Lọc ra các sản phẩm đã chọn
+    const selectedProducts = cartItems.filter(item => selectedItems[item.id]);
+
+    // Cập nhật giỏ hàng trong Redux store chỉ với các sản phẩm đã chọn
+    dispatch({ 
+      type: 'cart/updateSelectedItems', 
+      payload: selectedProducts 
+    });
+
+    // Chuyển hướng đến trang thanh toán
+    navigate('/thanh-toan');
   };
 
-  useEffect(() => {
-    if (message) {
-      const timer = setTimeout(() => setMessage(''), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [message]);
-
-  if (!token || !user) return null;
   if (loading) return <div className="loading">Đang tải...</div>;
   if (error) return <div className="error">{error}</div>;
 
   return (
-    <div className="cart-page">
+    <div className="cart-container">
       <div className="cart-header">
-        <h1>Giỏ hàng của bạn</h1>
+        <img src={logo} alt="Logo" className="logo" />
+        <h1>Giỏ Hàng Của Bạn</h1>
       </div>
 
-      {message && (
-        <div className="message" style={{
-          padding: '10px',
-          margin: '10px 0',
-          backgroundColor: message.includes('thất bại') ? '#ffebee' : '#e8f5e9',
-          color: message.includes('thất bại') ? '#c62828' : '#2e7d32',
-          borderRadius: '4px',
-          textAlign: 'center'
-        }}>
-          {message}
-        </div>
-      )}
+      {message && <div className="message">{message}</div>}
 
-      {listSP.length === 0 ? (
+      {(!cartItems || cartItems.length === 0) ? (
         <div className="empty-cart">
-          <div className="empty-cart-icon">
-            <i className="fas fa-shopping-cart"></i>
-          </div>
           <p>Giỏ hàng của bạn đang trống</p>
-          <p className="empty-cart-subtitle">Hãy chọn thêm sản phẩm để mua sắm nhé</p>
-          <Link to="/" className="continue-shopping">Quay lại trang chủ</Link>
+          <Link to="/" className="continue-shopping">Tiếp tục mua sắm</Link>
         </div>
       ) : (
-        <div className="cart-content">
+        <>
           <div className="cart-items">
-            <div className="cart-table">
-              <div className="cart-table-header">
-                <div className="col-product">Sản phẩm</div>
-                <div className="col-price">Đơn giá</div>
-                <div className="col-quantity">Số lượng</div>
-                <div className="col-total">Thành tiền</div>
-                <div className="col-action">Thao tác</div>
-              </div>
-              {listSP.map((item, index) => {
-                console.log(`[Item ${index} in map]:`, item);
-                const price = item.gia_km || item.gia || 0;
-                const originalPrice = item.gia || 0;
-                const hasDiscount = item.gia_km;
-                const total = price * item.so_luong;
-                const productId = item.id_sp || item.id;
-                console.log(`[Item ${index} in map] Calculated productId:`, productId);
-
-                return (
-                  <div key={`${item.id_user}-${productId}`} className="cart-table-row">
-                    <div className="col-product">
-                      <div className="product-info">
-                        <img
-                          src={item.hinh || logo}
-                          alt={item.ten_sp}
-                          className="product-image"
-                          onError={(e) => { e.target.src = logo; }}
-                        />
-                        <div className="product-details">
-                          <h3>{item.ten_sp}</h3>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="col-price">
-                      <div className="price-info">
-                        <span className="price">{price.toLocaleString()} VND</span>
-                        {hasDiscount && (
-                          <span className="original-price">{originalPrice.toLocaleString()} VND</span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="col-quantity">
-                      <div className="quantity-controls">
-                        <button
-                          onClick={() => handleQuantityChange(productId, item.so_luong - 1)}
-                          className="quantity-btn"
-                          disabled={item.so_luong <= 1}
-                        >-</button>
-                        <span className="quantity">{item.so_luong}</span>
-                        <button
-                          onClick={() => handleQuantityChange(productId, item.so_luong + 1)}
-                          className="quantity-btn"
-                          disabled={item.so_luong >= 10}
-                        >+</button>
-                      </div>
-                    </div>
-                    <div className="col-total">
-                      <span className="total-price">{total.toLocaleString()} VND</span>
-                    </div>
-                    <div className="col-action">
-                      <button
-                        onClick={() => handleRemoveItem(productId)}
-                        className="remove-btn"
-                      >
-                        <i className="fas fa-trash"></i>
-                      </button>
-                    </div>
+            <div className="select-all">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={Object.values(selectedItems).every(Boolean)}
+                  onChange={handleSelectAll}
+                />
+                Chọn tất cả
+              </label>
+            </div>
+            {cartItems.map((item) => (
+              <div key={item.id} className="cart-item">
+                <div className="item-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={selectedItems[item.id] || false}
+                    onChange={() => handleSelectItem(item.id)}
+                  />
+                </div>
+                <div className="item-image">
+                  {item.hinh_anh && <img src={item.hinh_anh} alt={item.ten_sp} />}
+                </div>
+                <div className="item-details">
+                  <h3>{item.ten_sp}</h3>
+                  <div className="price">
+                    {item.gia_km ? (
+                      <>
+                        <span className="original-price">{Number(item.gia).toLocaleString()}đ</span>
+                        <span className="discount-price">{Number(item.gia_km).toLocaleString()}đ</span>
+                      </>
+                    ) : (
+                      <span>{Number(item.gia).toLocaleString()}đ</span>
+                    )}
                   </div>
-                );
-              })}
-            </div>
+                  <div className="quantity-control">
+                    <button onClick={() => handleQuantityChange(item.id, Number(item.so_luong) - 1)}
+                            disabled={Number(item.so_luong) <= 1}>
+                      -
+                    </button>
+                    <span>{item.so_luong}</span>
+                    <button onClick={() => handleQuantityChange(item.id, Number(item.so_luong) + 1)}
+                            disabled={Number(item.so_luong) >= 10}>
+                      +
+                    </button>
+                  </div>
+                  <button className="remove-item" onClick={() => handleRemoveItem(item.id)}>
+                    Xóa
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
+
           <div className="cart-summary">
-            <div className="summary-header">
-              <h3>Tổng đơn hàng</h3>
+            <div className="total">
+              <h3>Tổng tiền:</h3>
+              <span>{totalPrice.toLocaleString()}đ</span>
             </div>
-            <div className="summary-content">
-              <div className="summary-row">
-                <span>Tạm tính</span>
-                <span>{calculateTotal().toLocaleString()} VND</span>
-              </div>
-              <div className="summary-row">
-                <span>Phí vận chuyển</span>
-                <span>Miễn phí</span>
-              </div>
-              <div className="summary-row total">
-                <span>Tổng cộng</span>
-                <span>{calculateTotal().toLocaleString()} VND</span>
-              </div>
-            </div>
-            <div className="summary-actions">
-              <button onClick={handleClearCart} className="clear-cart-btn">Xóa giỏ hàng</button>
-              <Link to="/thanh-toan" className="checkout-btn">Thanh toán</Link>
+            <div className="cart-actions">
+              <button className="clear-cart" onClick={handleClearCart}>
+                Xóa giỏ hàng
+              </button>
+              <button 
+                className={`checkout-btn ${totalPrice === 0 ? 'disabled' : ''}`}
+                onClick={handleCheckout}
+                disabled={totalPrice === 0}
+              >
+                Thanh toán
+              </button>
             </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   );
 }
 
-export default ShowCart;
+export default ShowCart; 
